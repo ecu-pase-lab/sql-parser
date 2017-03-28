@@ -5,7 +5,6 @@ namespace PhpMyAdmin\SqlParser;
 use PhpMyAdmin\SqlParser\Statements\DeleteStatement;
 use PhpMyAdmin\SqlParser\Statements\InsertStatement;
 use PhpMyAdmin\SqlParser\Statements\SelectStatement;
-use PhpMyAdmin\SqlParser\Statements\SetStatement;
 use PhpMyAdmin\SqlParser\Statements\UpdateStatement;
 
 require_once("bootstrap.php");
@@ -42,35 +41,83 @@ class RascalPrinter
     }
 
     public static function printSelectQuery($parsed){
-        return "selectQuery(" . self::printTables($parsed->from) . ")";
+        $res = "selectQuery(";
+
+        // print select expressions
+        $res .=  self::printExpressionList($parsed->expr);
+
+        if(!is_null($parsed->from)) {
+            // print tables to be selected from
+            $res .= ", " . self::printExpressionList($parsed->from);
+        }
+
+        $res .= ")";
+
+        return $res;
     }
 
     public static function printUpdateQuery($parsed){
-        return "updateQuery(" . self::printTables($parsed->tables) . ")";
+        $res = "updateQuery(";
+
+        // print the tables to be updated
+        $res .= self::printExpressionList($parsed->tables);
+
+        $res .= ")";
+
+        return $res;
     }
 
     public static function printInsertQuery($parsed){
-        return "insertQuery(" . self::printTables($parsed->into) . ")";
+        $res = "insertQuery(";
+
+        // print the table data will be inserted into
+        $res .= self::printExpression($parsed->into);
+
+        $res .= ")";
+
+        return $res;
     }
 
     public static function printDeleteQuery($parsed){
-        return "deleteQuery(" . self::printTables($parsed->from) . ")";
+        $res = "deleteQuery(";
+
+        // print the tables to be deleted from
+        $res .= self::printExpressionList($parsed->from);
+
+        $res .= ")";
+
+        return $res;
     }
 
-    public static function printTables($tables){
-        $size = sizeof($tables);
-        if($size == 1){
-            return "table(\"" . $tables[0]->table . "\")";
+    //TODO: handle all cases
+    public static function printExpression($exp){
+        switch($exp->expr){
+            // this expression is a column name
+            case($exp->column):
+                return "column(\"" . $exp->column . "\")";
+            // this expression is a table name
+            case($exp->table):
+                return "table(\"" . $exp->table . "\")";
+            // this expression is a database name
+            case($exp->database):
+                return "database(\"" . $exp->database . "\")";
+            default:
+                return "unknownExpression()";
         }
-        else{
-            $res = "tables(";
-            for($i = 0; $i < $size - 1; $i++){
-                $res .= "\"" . $tables[$i]->table . "\", ";
-            }
-            //print the last table without a comma, plus the closing set notation and closing paren
-            $res .= "\"" . $tables[$size - 1]->table . "\")";
+    }
 
-            return $res;
+    /*
+     * prints comma separated rascal list of expressions
+     */
+    public static function printExpressionList($expressions){
+        $size = sizeof($expressions);
+
+        $res = "[";
+        for($i = 0; $i < $size - 1; $i++){
+            $res .= self::printExpression($expressions[$i]) . ", ";
         }
+        $res .= self::printExpression($expressions[$size - 1]) . "]";
+
+        return $res;
     }
 }
