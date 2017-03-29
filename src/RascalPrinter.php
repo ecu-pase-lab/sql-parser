@@ -51,6 +51,11 @@ class RascalPrinter
             $res .= ", " . self::printExpressionList($parsed->from);
         }
 
+        if(!is_null($parsed->where)){
+            // print the conditions used for filtering the result
+            $res .= ", " . self::printConditionList($parsed->where);
+        }
+
         $res .= ")";
 
         return $res;
@@ -60,7 +65,16 @@ class RascalPrinter
         $res = "updateQuery(";
 
         // print the tables to be updated
-        $res .= self::printExpressionList($parsed->tables);
+        if(!is_null($parsed->tables)) {
+            $res .= self::printExpressionList($parsed->tables);
+        }
+
+        //TODO: set operations
+        //if(!is_null($parsed->set){...}
+
+        if(!is_null($parsed->where)){
+            $res .= self::printConditionList($parsed->where);
+        }
 
         $res .= ")";
 
@@ -73,6 +87,12 @@ class RascalPrinter
         // print the table data will be inserted into
         $res .= self::printExpression($parsed->into);
 
+        //TODO: values statement
+        //if(!is_null($parsed->values){...}
+
+        //TODO: set operations
+        //if(!is_null($parsed->set){...}
+
         $res .= ")";
 
         return $res;
@@ -84,6 +104,8 @@ class RascalPrinter
         // print the tables to be deleted from
         $res .= self::printExpressionList($parsed->from);
 
+        //TODO: other clauses for delete
+
         $res .= ")";
 
         return $res;
@@ -91,8 +113,10 @@ class RascalPrinter
 
     //TODO: handle all cases
     public static function printExpression($exp){
-        // first, check for simple cases where this expression is a column,table, or database name
+        // first, check for simple cases where this expression is a column, table, database name, or *
         switch($exp->expr){
+            case("*"):
+                return "star()";
             // this expression is a column name
             case($exp->column):
                 return "name(column(\"" . $exp->column . "\"))";
@@ -124,5 +148,14 @@ class RascalPrinter
         $res .= self::printExpression($expressions[$size - 1]) . "]";
 
         return $res;
+    }
+
+    /*
+     * Prints list of conditions found in a WHERE clause in rascal format
+     */
+    public static function printConditionList($conditions){
+        $size = sizeof($conditions);
+        // TODO: implement condition list printing
+        return "";
     }
 }
