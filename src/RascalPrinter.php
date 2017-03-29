@@ -91,18 +91,23 @@ class RascalPrinter
 
     //TODO: handle all cases
     public static function printExpression($exp){
+        // first, check for simple cases where this expression is a column,table, or database name
         switch($exp->expr){
             // this expression is a column name
             case($exp->column):
-                return "column(\"" . $exp->column . "\")";
+                return "name(column(\"" . $exp->column . "\"))";
             // this expression is a table name
             case($exp->table):
-                return "table(\"" . $exp->table . "\")";
+                return "name(table(\"" . $exp->table . "\"))";
             // this expression is a database name
             case($exp->database):
-                return "database(\"" . $exp->database . "\")";
-            default:
-                return "unknownExpression()";
+                return "name(database(\"" . $exp->database . "\"))";
+            case($exp->table . "." . $exp->column):
+                return "name(tableColumn(\"" . $exp->table . "\", \"" . $exp->column . "\"))";
+            case($exp->database . "." . $exp->table):
+                return "name(databaseTable(\"" . $exp->database . "\", \"" . $exp->table . "\"))";
+            case($exp->database . "." . $exp->table . "." . $exp->column):
+                return "name(databaseTableColumn(\"" . $exp->database . "\", \"" . $exp->table . "\", \"" . $exp->column . "\"))";
         }
     }
 
