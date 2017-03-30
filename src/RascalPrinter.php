@@ -51,9 +51,22 @@ class RascalPrinter
             $res .= ", " . self::printExpressionList($parsed->from);
         }
 
-        if(!is_null($parsed->where)){
-            // print the conditions used for filtering the result
-            $res .= ", " . self::printConditionList($parsed->where);
+        //TODO: print where clause
+
+        if(!is_null($parsed->group)){
+            $res .= ", " . self::printGroupBy($parsed->group);
+        }
+        else{
+            $res .= ", noGroupBy()";
+        }
+
+        //TODO: print having clause
+
+        if(!is_null($parsed->order)){
+            $res .= ", " . self::printOrderBy($parsed->order);
+        }
+        else{
+            $res .= ", noOrderBy()";
         }
 
         $res .= ")";
@@ -72,8 +85,13 @@ class RascalPrinter
         //TODO: set operations
         //if(!is_null($parsed->set){...}
 
-        if(!is_null($parsed->where)){
-            $res .= self::printConditionList($parsed->where);
+        //TODO: where clause
+
+        if(!is_null($parsed->order)){
+            $res .= ", " . self::printOrderBy($parsed->order);
+        }
+        else{
+            $res .= ", noGroupBy()";
         }
 
         $res .= ")";
@@ -106,6 +124,14 @@ class RascalPrinter
 
         //TODO: other clauses for delete
 
+        if(!is_null($parsed->order)){
+            $res .= ", " . self::printOrderBy($parsed->order);
+        }
+
+        else{
+            $res .= ", noGroupBy()";
+        }
+        
         $res .= ")";
 
         return $res;
@@ -151,11 +177,48 @@ class RascalPrinter
     }
 
     /*
-     * Prints list of conditions found in a WHERE clause in rascal format
+     * Prints a predicate found in a WHERE or HAVING clause
      */
-    public static function printConditionList($conditions){
-        $size = sizeof($conditions);
-        // TODO: implement condition list printing
+    public static function printPredicate($predicate){
+        //TODO: implement predicate printing
+        $size = sizeof($predicate);
+
         return "";
+    }
+
+    /*
+     * Prints GROUP BY clause in rascal format
+     */
+    public static function printGroupBy($grouping){
+        $size = sizeof($grouping);
+
+        $res = "groupBy({";
+        for($i = 0; $i < $size - 1; $i++){
+            $res .= "<" . self::printExpression($grouping[$i]->expr) . ", \"" . $grouping[$i]->type . "\">";
+            $res .= ", ";
+        }
+        $res .= "<" . self::printExpression($grouping[$size - 1]->expr) . ", \"" . $grouping[$size - 1]->type . "\">";
+
+        $res .= "})";
+
+        return $res;
+    }
+
+    /*
+     * Prints ORDER BY clause in rascal format
+     */
+    public static function printOrderBy($ordering){
+        $size = sizeof($ordering);
+
+        $res = "orderBy({";
+        for($i = 0; $i < $size - 1; $i++){
+            $res .= "<" . self::printExpression($ordering[$i]->expr) . ", \"" . $ordering[$i]->type . "\">";
+            $res .= ", ";
+        }
+        $res .= "<" . self::printExpression($ordering[$size - 1]->expr) . ", \"" . $ordering[$size - 1]->type . "\">";
+
+        $res .= "})";
+
+        return $res;
     }
 }
