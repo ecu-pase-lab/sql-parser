@@ -7,7 +7,7 @@ use PhpMyAdmin\SqlParser\Statements\InsertStatement;
 use PhpMyAdmin\SqlParser\Statements\SelectStatement;
 use PhpMyAdmin\SqlParser\Statements\UpdateStatement;
 
-require_once("bootstrap.php");
+require_once("../vendor/autoload.php");
 
 class RascalPrinter
 {

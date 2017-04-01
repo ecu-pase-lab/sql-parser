@@ -2,7 +2,7 @@
 
 namespace PhpMyAdmin\SqlParser;
 
-require_once ("bootstrap.php");
+require_once ("../vendor/autoload.php");
 /**
  * Created by PhpStorm.
  * User: andersonda
