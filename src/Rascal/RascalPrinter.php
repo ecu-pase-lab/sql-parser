@@ -1,13 +1,14 @@
 <?php
 
-namespace PhpMyAdmin\SqlParser;
+namespace PhpMyAdmin\SqlParser\Rascal;
 
+use PhpMyAdmin\SqlParser\Parser;
 use PhpMyAdmin\SqlParser\Statements\DeleteStatement;
 use PhpMyAdmin\SqlParser\Statements\InsertStatement;
 use PhpMyAdmin\SqlParser\Statements\SelectStatement;
 use PhpMyAdmin\SqlParser\Statements\UpdateStatement;
 
-require_once("../vendor/autoload.php");
+require_once("../../vendor/autoload.php");
 
 class RascalPrinter
 {
@@ -51,7 +52,12 @@ class RascalPrinter
             $res .= ", " . self::printExpressionList($parsed->from);
         }
 
-        //TODO: print where clause
+        if(!is_null($parsed->where)){
+            $res .= ", " . self::printWhere($parsed->where);
+        }
+        else{
+            $res .= ", noWhere()";
+        }
 
         if(!is_null($parsed->group)){
             $res .= ", " . self::printGroupBy($parsed->group);
@@ -60,7 +66,12 @@ class RascalPrinter
             $res .= ", noGroupBy()";
         }
 
-        //TODO: print having clause
+        if(!is_null($parsed->having)){
+            $res .= ", " . self::printHaving($parsed->having);
+        }
+        else{
+            $res .= ", noHaving()";
+        }
 
         if(!is_null($parsed->order)){
             $res .= ", " . self::printOrderBy($parsed->order);
@@ -85,7 +96,12 @@ class RascalPrinter
         //TODO: set operations
         //if(!is_null($parsed->set){...}
 
-        //TODO: where clause
+        if(!is_null($parsed->where)){
+            $res .= ", " . self::printWhere($parsed->where);
+        }
+        else{
+            $res .= ", noWhere()";
+        }
 
         if(!is_null($parsed->order)){
             $res .= ", " . self::printOrderBy($parsed->order);
@@ -116,20 +132,26 @@ class RascalPrinter
         return $res;
     }
 
+    //TODO: other clauses for delete
     public static function printDeleteQuery($parsed){
         $res = "deleteQuery(";
 
         // print the tables to be deleted from
         $res .= self::printExpressionList($parsed->from);
 
-        //TODO: other clauses for delete
+        if(!is_null($parsed->where)){
+            $res .= ", " . self::printWhere($parsed->where);
+        }
+        else{
+            $res .= ", noWhere()";
+        }
 
         if(!is_null($parsed->order)){
             $res .= ", " . self::printOrderBy($parsed->order);
         }
 
         else{
-            $res .= ", noGroupBy()";
+            $res .= ", noOrderBy()";
         }
         
         $res .= ")";
@@ -170,20 +192,24 @@ class RascalPrinter
         $res = "[";
         for($i = 0; $i < $size - 1; $i++){
             $res .= self::printExpression($expressions[$i]) . ", ";
-        }
-        $res .= self::printExpression($expressions[$size - 1]) . "]";
+        } $res .= self::printExpression($expressions[$size - 1]) . "]";
 
         return $res;
     }
 
-    /*
-     * Prints a predicate found in a WHERE or HAVING clause
-     */
-    public static function printPredicate($predicate){
-        //TODO: implement predicate printing
-        $size = sizeof($predicate);
 
-        return "";
+    /*
+     * Prints a where clause in rascal format
+     */
+    public static function printWhere($where){
+        return "where(" . self::printConditions(self::conditionsToTree($where)) . ")";
+    }
+
+    /*
+     * Prints a having clause in rascal format
+     */
+    public static function printHaving($having){
+        return "where(" . self::printConditions(self::conditionsToTree($having)) . ")";
     }
 
     /*
@@ -220,5 +246,103 @@ class RascalPrinter
         $res .= "})";
 
         return $res;
+    }
+
+    /*
+     * prints conditions from WHERE or HAVING clause in rascal format
+     */
+    public static function printConditions($tree){
+        if(is_null($tree->left) && is_null($tree->right)){
+            return "condition(\"" . $tree->value . "\")";
+        }
+        else if($tree->value === "NOT"){
+            return "not(\"" . $tree->left . "\")";
+        }
+        else if($tree->value === "AND" || $tree->value === "&&"){
+            return "and(" . self::printConditions($tree->left) . ", " . self::printConditions($tree->right) . ")";
+        }
+        else if($tree->value === "OR" || $tree->value === "||"){
+            return "or(" . self::printConditions($tree->left) . ", " . self::printConditions($tree->right) . ")";
+        }
+        else if($tree->value === "XOR"){
+            return "xor(" . self::printConditions($tree->left) . ", " . self::printConditions($tree->right) . ")";
+        }
+        else{
+            echo "unexpected condition tree node";
+            exit(1);
+        }
+    }
+
+    /*
+     * uses shunting yard to get the conditions from WHERE or HAVING in a tree data structure
+     * TODO: process expressions rather than just print them as strings
+     * TODO: handle parentheses
+     */
+    public static function conditionsToTree($conditions){
+        $output = array();
+        $stack = array();
+        $precedence = [
+          "NOT" => 3,
+            "AND" => 2,
+            "&&" => 2,
+            "OR" => 1,
+            "||" => 1,
+            "XOR" => 1
+        ];
+
+        foreach($conditions as $condition){
+            if(!$condition->isOperator){
+                // this condition is negated, push a new ConditionNode onto the output array
+                if(strtoupper(substr($condition->expr, 0, 3)) === "NOT"){
+                    $node = new ConditionNode("NOT");
+                    $node->left = trim(substr($condition->expr, 4));
+                    $node->right = null;
+                    array_push($output, $node);
+                }
+                // push the simple condition as a new leaf
+                else{
+                    array_push($output, new ConditionNode($condition->expr));
+                }
+            }
+            else{
+                $op1 = strtoupper($condition->expr);
+                while(!(sizeof($stack) === 0)){
+                    $op2 = array_pop($stack);
+                    if($op1 !== "NOT" && $precedence[$op1] <= $precedence[$op2]){
+                        $node = new ConditionNode($op2);
+                        $node->left = array_pop($output);
+                        $node->right = array_pop($output);
+                        array_push($output, $node);
+                    }
+                    else{
+                        array_push($stack, $op2);
+                        break;
+                    }
+                }
+                array_push($stack, $op1);
+            }
+        }
+        while(!(sizeof($stack) === 0)) {
+            $op = array_pop($stack);
+            $node = new ConditionNode($op);
+            $node->left = array_pop($output);
+            $node->right = array_pop($output);
+            array_push($output, $node);
+        }
+
+        return $output[0];
+    }
+}
+
+class ConditionNode
+{
+    public $value;
+    public $left;
+    public $right;
+
+    public function __construct($item) {
+        $this->value = $item;
+        $this->left = null;
+        $this->right = null;
     }
 }
