@@ -53,6 +53,11 @@ class RascalPrinter
             $res .= ", " . self::printExpressionList($parsed->from);
         }
 
+        if(!is_null($parsed->partition)){
+            //TODO: implement partitions.
+            $res .= "partitions are not yet implemented";
+        }
+
         if(!is_null($parsed->where)){
             $res .= ", " . self::printWhere($parsed->where);
         }
@@ -81,6 +86,31 @@ class RascalPrinter
             $res .= ", noOrderBy()";
         }
 
+        if(!is_null($parsed->limit)){
+            //TODO: implement LIMIT
+            $res .= "limit is not yet implemented";
+        }
+
+        if(!is_null($parsed->procedure)){
+            //TODO: implement procedure
+            $res .= "procedure is not yet implemented";
+        }
+
+        if(!is_null($parsed->into)){
+            //TODO: implement INTO
+            $res .= "into is not yet implemented";
+        }
+
+        if(!is_null($parsed->join)){
+            //TODO: implement JOIN
+            $res .= "join is not yet implemented";
+        }
+
+        if(sizeof($parsed->union) !== 0){
+            //TODO: implement UNION
+            $res .= "union is not yet implemented";
+        }
+
         $res .= ")";
 
         return $res;
@@ -94,8 +124,10 @@ class RascalPrinter
             $res .= self::printExpressionList($parsed->tables);
         }
 
-        //TODO: set operations
-        //if(!is_null($parsed->set){...}
+        if(!is_null($parsed->set)){
+            //TODO: set operations
+            $res .= "set operations are not yet implemented";
+        }
 
         if(!is_null($parsed->where)){
             $res .= ", " . self::printWhere($parsed->where);
@@ -108,7 +140,12 @@ class RascalPrinter
             $res .= ", " . self::printOrderBy($parsed->order);
         }
         else{
-            $res .= ", noGroupBy()";
+            $res .= ", noOrderBy()";
+        }
+
+        if(!is_null($parsed->limit)){
+            //TODO: limit
+            $res .= "limit is not yet implemented";
         }
 
         $res .= ")";
@@ -122,12 +159,25 @@ class RascalPrinter
         // print the table data will be inserted into
         $res .= self::printExpression($parsed->into);
 
-        //TODO: values statement
-        //if(!is_null($parsed->values){...}
+        if(!is_null($parsed->values)){
+            //TODO: values statement
+            $res .= "values clause is not yet implemented";
+        }
 
-        //TODO: set operations
-        //if(!is_null($parsed->set){...}
+        if(!is_null($parsed->set)){
+            //TODO: set operations
+            $res .= "set operations are not yet implemented";
+        }
 
+        if(!is_null($parsed->select)){
+            //TODO select operation in insert
+            $res .= "select operation in insert query is not yet implemented";
+        }
+
+        if(!is_null($parsed->onDuplicateSet)){
+            //TODO: on duplicate set
+            $res .= "on duplicate set is not yet implemented";
+        }
         $res .= ")";
 
         return $res;
@@ -138,7 +188,24 @@ class RascalPrinter
         $res = "deleteQuery(";
 
         // print the tables to be deleted from
-        $res .= self::printExpressionList($parsed->from);
+        if(!is_null($parsed->from)){
+            $res .= self::printExpressionList($parsed->from);
+        }
+
+        if(!is_null($parsed->using)){
+            //TODO: USING clause
+            $res .= "using is not yet implemented";
+        }
+
+        if(!is_null($parsed->columns)){
+            //todo columns
+            $res .= "columns in DELETE is not yet implemented";
+        }
+
+        if(!is_null($parsed->partition)){
+            //TODO: implement partitions.
+            $res .= "partitions are not yet implemented";
+        }
 
         if(!is_null($parsed->where)){
             $res .= ", " . self::printWhere($parsed->where);
@@ -150,9 +217,13 @@ class RascalPrinter
         if(!is_null($parsed->order)){
             $res .= ", " . self::printOrderBy($parsed->order);
         }
-
         else{
             $res .= ", noOrderBy()";
+        }
+
+        if(!is_null($parsed->limit)){
+            //TODO: limit
+            $res .= "limit is not yet implemented";
         }
         
         $res .= ")";
