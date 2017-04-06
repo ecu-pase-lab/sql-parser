@@ -187,7 +187,6 @@ class RascalPrinter
         return $res;
     }
 
-    //TODO: other clauses for delete
     public static function printDeleteQuery($parsed){
         $res = "deleteQuery(";
 
@@ -238,31 +237,47 @@ class RascalPrinter
     }
 
     public static function printExpression($exp){
-        // first, check for simple cases where this expression is a column, table, database name, or *
+        $res = "";
+        if(!is_null($exp->alias)){
+            $res .= "aliased(";
+        }
         switch($exp->expr){
             case("*"):
-                return "star()";
+                $res .= "star()";
+                break;
             // this expression is a column name
             case($exp->column):
-                return "name(column(\"" . $exp->column . "\"))";
+                $res .= "name(column(\"" . $exp->column . "\"))";
+                break;
             // this expression is a table name
             case($exp->table):
-                return "name(table(\"" . $exp->table . "\"))";
+                $res .= "name(table(\"" . $exp->table . "\"))";
+                break;
             // this expression is a database name
             case($exp->database):
-                return "name(database(\"" . $exp->database . "\"))";
+                $res .= "name(database(\"" . $exp->database . "\"))";
+                break;
             case($exp->table . "." . $exp->column):
-                return "name(tableColumn(\"" . $exp->table . "\", \"" . $exp->column . "\"))";
+                $res .= "name(tableColumn(\"" . $exp->table . "\", \"" . $exp->column . "\"))";
+                break;
             case($exp->database . "." . $exp->table):
-                return "name(databaseTable(\"" . $exp->database . "\", \"" . $exp->table . "\"))";
+                $res .= "name(databaseTable(\"" . $exp->database . "\", \"" . $exp->table . "\"))";
+                break;
             case($exp->database . "." . $exp->table . "." . $exp->column):
-                return "name(databaseTableColumn(\"" . $exp->database . "\", \"" . $exp->table . "\", \"" . $exp->column . "\"))";
+                $res .= "name(databaseTableColumn(\"" . $exp->database . "\", \"" . $exp->table . "\", \"" . $exp->column . "\"))";
+                break;
         }
 
         if(!is_null($exp->function)){
             //TODO: handle function params
-            return "call(\"" . $exp->function . "\")";
+            $res .= "call(\"" . $exp->function . "\")";
         }
+
+        if(!is_null($exp->alias)){
+            $res .= ", \"" . $exp->alias . "\")";
+        }
+
+        return $res;
     }
 
     /*
