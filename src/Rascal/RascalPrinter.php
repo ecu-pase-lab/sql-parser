@@ -87,8 +87,10 @@ class RascalPrinter
         }
 
         if(!is_null($parsed->limit)){
-            //TODO: implement LIMIT
-            $res .= "limit is not yet implemented";
+            $res .= self::printLimit($parsed->limit);
+        }
+        else{
+            $res .= ", noLimit()";
         }
 
         if(!is_null($parsed->procedure)){
@@ -144,8 +146,10 @@ class RascalPrinter
         }
 
         if(!is_null($parsed->limit)){
-            //TODO: limit
-            $res .= "limit is not yet implemented";
+            $res .= self::printLimit($parsed->limit);
+        }
+        else{
+            $res .= ", noLimit()";
         }
 
         $res .= ")";
@@ -222,8 +226,10 @@ class RascalPrinter
         }
 
         if(!is_null($parsed->limit)){
-            //TODO: limit
-            $res .= "limit is not yet implemented";
+            $res .= self::printLimit($parsed->limit);
+        }
+        else{
+            $res .= ", noLimit()";
         }
         
         $res .= ")";
@@ -320,6 +326,16 @@ class RascalPrinter
         $res .= "<" . self::printExpression($ordering[$size - 1]->expr) . ", \"" . $ordering[$size - 1]->type . "\">";
 
         $res .= "})";
+
+        return $res;
+    }
+
+    public static function printLimit($limit){
+        $res = ", limit(" . $limit->rowCount;
+        if($limit->offset !== 0){
+            $res .= ", " . $limit->offset;
+        }
+        $res .= ")";
 
         return $res;
     }
