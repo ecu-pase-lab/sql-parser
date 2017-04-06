@@ -2,6 +2,7 @@
 
 namespace PhpMyAdmin\SqlParser\Rascal;
 
+use PhpMyAdmin\SqlParser\Components\Condition;
 use PhpMyAdmin\SqlParser\Parser;
 use PhpMyAdmin\SqlParser\Statements\DeleteStatement;
 use PhpMyAdmin\SqlParser\Statements\InsertStatement;
@@ -159,7 +160,6 @@ class RascalPrinter
         return $res;
     }
 
-    //TODO: handle all cases
     public static function printExpression($exp){
         // first, check for simple cases where this expression is a column, table, database name, or *
         switch($exp->expr){
@@ -180,6 +180,11 @@ class RascalPrinter
                 return "name(databaseTable(\"" . $exp->database . "\", \"" . $exp->table . "\"))";
             case($exp->database . "." . $exp->table . "." . $exp->column):
                 return "name(databaseTableColumn(\"" . $exp->database . "\", \"" . $exp->table . "\", \"" . $exp->column . "\"))";
+        }
+
+        if(!is_null($exp->function)){
+            //TODO: handle function params
+            return "call(\"" . $exp->function . "\")";
         }
     }
 
@@ -256,7 +261,7 @@ class RascalPrinter
             return "condition(\"" . $tree->value . "\")";
         }
         else if($tree->value === "NOT"){
-            return "not(\"" . $tree->left . "\")";
+            return "not(\"" . self::printConditions($tree->left) . "\")";
         }
         else if($tree->value === "AND" || $tree->value === "&&"){
             return "and(" . self::printConditions($tree->left) . ", " . self::printConditions($tree->right) . ")";
@@ -291,13 +296,36 @@ class RascalPrinter
         ];
 
         foreach($conditions as $condition){
-            if(!$condition->isOperator){
-                // this condition is negated, push a new ConditionNode onto the output array
+            if($condition->isOperator === false){
+                // this condition starts with a left paren, push it to the operator stack
+                if($condition->expr[0] === "("){
+                    array_push($stack, "(");
+                    $condition->expr = trim(substr($condition->expr, 1));
+                }
+
+                // this condition is negated, push "NOT" onto the operator stack
                 if(strtoupper(substr($condition->expr, 0, 3)) === "NOT"){
-                    $node = new ConditionNode("NOT");
-                    $node->left = trim(substr($condition->expr, 4));
-                    $node->right = null;
-                    array_push($output, $node);
+                    array_push($stack, "NOT");
+                    $condition->expr = trim(substr($condition->expr, 4));
+                }
+
+                // this condition ends with a right paren, build up the tree until a left paren is on top of the stack
+                if(substr($condition->expr, -1) === ")"){
+                    array_push($output, new ConditionNode(trim(substr($condition->expr, 0, sizeof($condition->expr) - 2))));
+                    while(!(sizeof($stack) === 0)){
+                        $op = array_pop($stack);
+                        if($op === "("){
+                            break;
+                        }
+                        else{
+                            $node = new ConditionNode($op);
+                            $node->left = array_pop($output);
+                            if($op !== "NOT"){
+                                $node->right = array_pop($output);
+                            }
+                            array_push($output, $node);
+                        }
+                    }
                 }
                 // push the simple condition as a new leaf
                 else{
@@ -306,17 +334,16 @@ class RascalPrinter
             }
             else{
                 $op1 = strtoupper($condition->expr);
-                while(!(sizeof($stack) === 0)){
-                    $op2 = array_pop($stack);
-                    if($op1 !== "NOT" && $precedence[$op1] <= $precedence[$op2]){
+                while(!(sizeof($stack) === 0) && $stack[sizeof($stack) - 1] !== '('){
+                    $op2 = $stack[sizeof($stack) - 1];
+                    if(in_array($op1, Condition::$DELIMITERS) && $precedence[$op1] <= $precedence[$op2]){
                         $node = new ConditionNode($op2);
                         $node->left = array_pop($output);
-                        $node->right = array_pop($output);
+                        if($op2 !== "NOT") {
+                            $node->right = array_pop($output);
+                        }
                         array_push($output, $node);
-                    }
-                    else{
-                        array_push($stack, $op2);
-                        break;
+                        array_pop($stack);
                     }
                 }
                 array_push($stack, $op1);
@@ -326,10 +353,11 @@ class RascalPrinter
             $op = array_pop($stack);
             $node = new ConditionNode($op);
             $node->left = array_pop($output);
-            $node->right = array_pop($output);
+            if(!($op === "NOT")) {
+                $node->right = array_pop($output);
+            }
             array_push($output, $node);
         }
-
         return $output[0];
     }
 }
