@@ -72,7 +72,7 @@ class Lexer extends Core
 
         'parseDelimiter', 'parseWhitespace', 'parseNumber',
         'parseComment', 'parseOperator', 'parseBool', 'parseString',
-        'parseSymbol', 'parseKeyword', 'parseLabel', 'parseUnknown',
+        'parseSymbol', 'parseKeyword', 'parseLabel', 'parseQueryHole', 'parseUnknown'
     );
 
     /**
@@ -890,6 +890,23 @@ class Lexer extends Core
         }
 
         return new Token($token, Token::TYPE_SYMBOL, $flags);
+    }
+
+    /**
+     * Parses a query hole
+     *
+     * @return null|Token
+     */
+    public function parseQueryHole(){
+        $token = $this->str[$this->last];
+        if(!Context::isQueryHole($token)){
+            return null;
+        }
+        while(++$this->last < $this->len && Context::isNumber($this->str[$this->last])){
+            $token .= $this->str[$this->last];
+        }
+
+        return new Token($token, Token::TYPE_HOLE);
     }
 
     /**

@@ -424,6 +424,18 @@ abstract class Context
             && (($str < 'A') || ($str > 'Z'));
     }
 
+
+    /**
+     * Checks if the given character is the beginning of a query hole. Our notation for query hole is "?<holeID>"
+     *
+     * @param string $str string to be checked
+     *
+     * @return bool
+     */
+    public static function isQueryHole($str){
+        return $str[0] === '?';
+    }
+
     /**
      * Loads the specified context.
      *

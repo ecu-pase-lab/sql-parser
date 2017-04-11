@@ -129,6 +129,11 @@ class Token
      */
     const TYPE_LABEL = 10;
 
+    /**
+     * query hole that comes from a php variable, superglobal, etc.
+     */
+    const TYPE_HOLE = 11;
+
     // Flags that describe the tokens in more detail.
     // All keywords must have flag 1 so `Context::isKeyword` method doesn't
     // require strict comparison.
