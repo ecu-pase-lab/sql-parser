@@ -83,6 +83,13 @@ class Expression extends Component
     public $subquery;
 
     /**
+     * The ID of the queryHole
+     *
+     * @var int
+     */
+    public $queryHole;
+
+    /**
      * Constructor.
      *
      * Syntax:
@@ -320,6 +327,12 @@ class Expression extends Component
                         break;
                     }
                 }
+            }
+
+            if($token->type === Token::TYPE_HOLE){
+                // ignore ? at beginning of query hole token
+                $id = substr($token->value, 1);
+                $ret->queryHole = (int)$id;
             }
 
             // Saving the previous tokens.
