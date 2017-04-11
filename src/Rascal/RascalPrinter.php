@@ -237,6 +237,10 @@ class RascalPrinter
     }
 
     public static function printExpression($exp){
+        if(!is_null($exp->queryHole)){
+            return "hole(" . $exp->queryHole . ")";
+        }
+
         $res = "";
         if(!is_null($exp->alias)){
             $res .= "aliased(";
@@ -406,11 +410,10 @@ class RascalPrinter
                 }
 
                 // this condition is negated, push "NOT" onto the operator stack
-                if(strtoupper(substr($condition->expr, 0, 3)) === "NOT"){
+                if(strtoupper(substr($condition->expr, 0, 3)) === "NOT") {
                     array_push($stack, "NOT");
                     $condition->expr = trim(substr($condition->expr, 4));
                 }
-
                 // this condition ends with a right paren, build up the tree until a left paren is on top of the stack
                 if(substr($condition->expr, -1) === ")"){
                     array_push($output, new ConditionNode(trim(substr($condition->expr, 0, sizeof($condition->expr) - 2))));

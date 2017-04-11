@@ -906,6 +906,8 @@ class Lexer extends Core
             $token .= $this->str[$this->last];
         }
 
+        --$this->last;
+        
         return new Token($token, Token::TYPE_HOLE);
     }
 

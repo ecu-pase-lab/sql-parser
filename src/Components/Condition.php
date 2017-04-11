@@ -192,6 +192,7 @@ class Condition extends Component
                 && (!($token->flags & Token::FLAG_KEYWORD_RESERVED)))
                 || ($token->type === Token::TYPE_STRING)
                 || ($token->type === Token::TYPE_SYMBOL)
+                || ($token->type === Token::TYPE_HOLE)
             ) {
                 if (!in_array($token->value, $expr->identifiers)) {
                     $expr->identifiers[] = $token->value;
