@@ -414,9 +414,10 @@ class RascalPrinter
                     array_push($stack, "NOT");
                     $condition->expr = trim(substr($condition->expr, 4));
                 }
+
                 // this condition ends with a right paren, build up the tree until a left paren is on top of the stack
                 while(substr($condition->expr, -1) === ")"){
-                    $condition->expr = trim(substr($condition->expr, 0, sizeof($condition->expr - 2)));
+                    $condition->expr = trim(substr($condition->expr, 0, sizeof($condition->expr) - 2));
                     while(!(sizeof($stack) === 0)){
                         $op = array_pop($stack);
                         if($op === "("){
