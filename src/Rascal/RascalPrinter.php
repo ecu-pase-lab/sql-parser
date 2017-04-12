@@ -404,7 +404,7 @@ class RascalPrinter
         foreach($conditions as $condition){
             if($condition->isOperator === false){
                 // this condition starts with a left paren, push it to the operator stack
-                if($condition->expr[0] === "("){
+                while($condition->expr[0] === "("){
                     array_push($stack, "(");
                     $condition->expr = trim(substr($condition->expr, 1));
                 }
@@ -415,8 +415,8 @@ class RascalPrinter
                     $condition->expr = trim(substr($condition->expr, 4));
                 }
                 // this condition ends with a right paren, build up the tree until a left paren is on top of the stack
-                if(substr($condition->expr, -1) === ")"){
-                    array_push($output, new ConditionNode(trim(substr($condition->expr, 0, sizeof($condition->expr) - 2))));
+                while(substr($condition->expr, -1) === ")"){
+                    $condition->expr = trim(substr($condition->expr, 0, sizeof($condition->expr - 2)));
                     while(!(sizeof($stack) === 0)){
                         $op = array_pop($stack);
                         if($op === "("){
@@ -432,10 +432,8 @@ class RascalPrinter
                         }
                     }
                 }
-                // push the simple condition as a new leaf
-                else{
-                    array_push($output, new ConditionNode($condition->expr));
-                }
+                // push the condition as a new leaf
+                array_push($output, new ConditionNode($condition->expr));
             }
             else{
                 $op1 = strtoupper($condition->expr);
