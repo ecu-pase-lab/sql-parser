@@ -54,34 +54,34 @@ class Condition extends Component
     );
 
     /**
-     * Identifiers recognized.
+     * list of operator precedence
      *
      * @var array
      */
-    public $identifiers = array();
+    public static $PRECEDENCE = array(
+          "NOT" => 3,
+            "AND" => 2,
+            "&&" => 2,
+            "OR" => 1,
+            "||" => 1,
+            "XOR" => 1
+    );
 
     /**
-     * Whether this component is an operator.
+     * The Condition Tree
      *
-     * @var bool
+     * @var ConditionNode
      */
-    public $isOperator = false;
-
-    /**
-     * The condition.
-     *
-     * @var string
-     */
-    public $expr;
+    public $tree;
 
     /**
      * Constructor.
      *
-     * @param string $expr the condition or the operator
+     * @param string $expr the tree
      */
     public function __construct($expr = null)
     {
-        $this->expr = trim($expr);
+        $this->tree = null;
     }
 
     /**
@@ -89,13 +89,15 @@ class Condition extends Component
      * @param TokensList $list    the list of tokens that are being parsed
      * @param array      $options parameters for parsing
      *
-     * @return Condition[]
+     * @return Condition
      */
     public static function parse(Parser $parser, TokensList $list, array $options = array())
     {
-        $ret = array();
 
-        $expr = new self();
+        /**
+         * keeps track of tokens that make up a simple condition
+         */
+        $condition = "";
 
         /**
          * Counts brackets.
@@ -115,7 +117,22 @@ class Condition extends Component
          */
         $betweenBefore = false;
 
+        /**
+         * The operator stack
+         *
+         * @var Token[]
+         */
+        $opStack = array();
+
+        /**
+         * The output stack
+         *
+         * @var Condition[]
+         */
+        $output = array();
+
         for (; $list->idx < $list->count; ++$list->idx) {
+            //var_dump($output);
             /**
              * Token parsed at this moment.
              *
@@ -136,31 +153,39 @@ class Condition extends Component
             // Replacing all whitespaces (new lines, tabs, etc.) with a single
             // space character.
             if ($token->type === Token::TYPE_WHITESPACE) {
-                $expr->expr .= ' ';
+                $condition .= ' ';
                 continue;
             }
 
             // Conditions are delimited by logical operators.
-            if (in_array($token->value, static::$DELIMITERS, true)) {
+            if (in_array($token->value, static::$DELIMITERS, true) || $token->value === "NOT") {
                 if (($betweenBefore) && ($token->value === 'AND')) {
                     // The syntax of keyword `BETWEEN` is hard-coded.
+                    $condition .= $token->value;
                     $betweenBefore = false;
-                } else {
-                    // The expression ended.
-                    $expr->expr = trim($expr->expr);
-                    if (!empty($expr->expr)) {
-                        $ret[] = $expr;
-                    }
-
-                    // Adding the operator.
-                    $expr = new self($token->value);
-                    $expr->isOperator = true;
-                    $ret[] = $expr;
-
-                    // Preparing to parse another condition.
-                    $expr = new self();
-                    continue;
                 }
+                else {
+                    // The condition ended, add it to the output stack
+                    $condition = trim($condition);
+                    if(!empty($condition)) {
+                        array_push($output, new ConditionNode($condition));
+                        $condition = "";
+                    }
+                    // Adding the operator to the operator stack
+                    while(sizeof($opStack) !== 0 && $opStack[sizeof($opStack) - 1]->value !== "(" &&
+                        static::$PRECEDENCE[$token->value] <= static::$PRECEDENCE[$opStack[sizeof($opStack) - 1]->value]) {
+                        $op2 = $opStack[sizeof($opStack) - 1];
+                        $node = new ConditionNode($op2->value);
+                        $node->left = array_pop($output);
+                        if($op2->value !== "NOT") {
+                            $node->right = array_pop($output);
+                        }
+                        array_push($output, $node);
+                        array_pop($opStack);
+                    }
+                    array_push($opStack, $token);
+                }
+                continue;
             }
 
             if (($token->type === Token::TYPE_KEYWORD)
@@ -173,42 +198,69 @@ class Condition extends Component
                 if (($brackets === 0) && (empty(static::$ALLOWED_KEYWORDS[$token->value]))) {
                     break;
                 }
+                $condition .= $token->value;
+                continue;
             }
 
             if ($token->type === Token::TYPE_OPERATOR) {
-                if ($token->value === '(') {
+                if ($token->value === "(") {
                     ++$brackets;
-                } elseif ($token->value === ')') {
+                    array_push($opStack, $token);
+                    continue;
+                }
+                else if ($token->value === ")") {
                     if ($brackets == 0) {
                         break;
                     }
                     --$brackets;
+
+                    // push the final condition onto the output stack
+                    array_push($output, new ConditionNode($condition));
+                    $condition = "";
+
+                    while(sizeof($opStack) !== 0){
+                        $op = array_pop($opStack);
+                        if($op->value === "("){
+                            break;
+                        }
+                        else{
+                            $node = new ConditionNode($op->value);
+                            $node->left = array_pop($output);
+                            if($op->value !== "NOT"){
+                                $node->right = array_pop($output);
+                            }
+                            array_push($output, $node);
+                        }
+                    }
+                    continue;
+                }
+                else{
+                    $condition .= $token->value;
+                    continue;
                 }
             }
 
-            $expr->expr .= $token->token;
-            if (($token->type === Token::TYPE_NONE)
-                || (($token->type === Token::TYPE_KEYWORD)
-                && (!($token->flags & Token::FLAG_KEYWORD_RESERVED)))
-                || ($token->type === Token::TYPE_STRING)
-                || ($token->type === Token::TYPE_SYMBOL)
-                || ($token->type === Token::TYPE_HOLE)
-            ) {
-                if (!in_array($token->value, $expr->identifiers)) {
-                    $expr->identifiers[] = $token->value;
-                }
-            }
+            $condition .= $token->value;
         }
 
-        // Last iteration was not processed.
-        $expr->expr = trim($expr->expr);
-        if (!empty($expr->expr)) {
-            $ret[] = $expr;
+        // add final condition to the output stack
+        if(!empty($condition)){
+            array_push($output, new ConditionNode($condition));
+        }
+
+        while(sizeof($opStack) !== 0) {
+            $op = array_pop($opStack);
+            $node = new ConditionNode($op->value);
+            $node->left = array_pop($output);
+            if($op->value !== "NOT") {
+                $node->right = array_pop($output);
+            }
+            array_push($output, $node);
         }
 
         --$list->idx;
-
-        return $ret;
+        var_dump($output);
+        return $output[0];
     }
 
     /**

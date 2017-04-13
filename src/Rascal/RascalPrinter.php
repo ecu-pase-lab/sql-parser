@@ -20,95 +20,87 @@ class RascalPrinter
         $this->parser = new Parser($query);
     }
 
-    public function printQuery(){
+    public function printQuery()
+    {
         $parsed = $this->parser->statements[0];
-        if(is_null($parsed)){
+        if (is_null($parsed)) {
             return "parseError()";
-        }
-        else if($parsed instanceof SelectStatement){
+        } else if ($parsed instanceof SelectStatement) {
             return self::printSelectQuery($parsed);
-        }
-        else if($parsed instanceof UpdateStatement){
+        } else if ($parsed instanceof UpdateStatement) {
             return self::printUpdateQuery($parsed);
-        }
-        else if($parsed instanceof InsertStatement){
+        } else if ($parsed instanceof InsertStatement) {
             return self::printInsertQuery($parsed);
-        }
-        else if($parsed instanceof DeleteStatement){
+        } else if ($parsed instanceof DeleteStatement) {
             return self::printDeleteQuery($parsed);
-        }
-        else{
+        } else {
             return "unknownQuery()";
         }
     }
 
-    public static function printSelectQuery($parsed){
+    public static function printSelectQuery($parsed)
+    {
         $res = "selectQuery(";
 
         // print select expressions
-        $res .=  self::printExpressionList($parsed->expr);
+        $res .= self::printExpressionList($parsed->expr);
 
-        if(!is_null($parsed->from)) {
+        if (!is_null($parsed->from)) {
             // print tables to be selected from
             $res .= ", " . self::printExpressionList($parsed->from);
         }
 
-        if(!is_null($parsed->partition)){
+        if (!is_null($parsed->partition)) {
             //TODO: implement partitions.
             $res .= "partitions are not yet implemented";
         }
 
-        if(!is_null($parsed->where)){
+        if (!is_null($parsed->where)) {
             $res .= ", " . self::printWhere($parsed->where);
-        }
-        else{
+        } else {
             $res .= ", noWhere()";
         }
 
-        if(!is_null($parsed->group)){
+        if (!is_null($parsed->group)) {
             $res .= ", " . self::printGroupBy($parsed->group);
-        }
-        else{
+        } else {
             $res .= ", noGroupBy()";
         }
 
-        if(!is_null($parsed->having)){
+        if (!is_null($parsed->having)) {
             $res .= ", " . self::printHaving($parsed->having);
-        }
-        else{
+        } else {
             $res .= ", noHaving()";
         }
 
-        if(!is_null($parsed->order)){
+        if (!is_null($parsed->order)) {
             $res .= ", " . self::printOrderBy($parsed->order);
-        }
-        else{
+        } else {
             $res .= ", noOrderBy()";
         }
 
-        if(!is_null($parsed->limit)){
+        if (!is_null($parsed->limit)) {
             $res .= self::printLimit($parsed->limit);
-        }
-        else{
+        } else {
             $res .= ", noLimit()";
         }
 
-        if(!is_null($parsed->procedure)){
+        if (!is_null($parsed->procedure)) {
             //TODO: implement procedure
             $res .= "procedure is not yet implemented";
         }
 
-        if(!is_null($parsed->into)){
+        if (!is_null($parsed->into)) {
             //TODO: implement INTO
             $res .= "into is not yet implemented";
         }
 
-        if(!is_null($parsed->join)){
+        if (!is_null($parsed->join)) {
             //TODO: implement JOIN
             $res .= "join is not yet implemented";
         }
 
-        if(sizeof($parsed->union) !== 0){
+        if (sizeof($parsed->union) !== 0) {
             //TODO: implement UNION
             $res .= "union is not yet implemented";
         }
@@ -118,37 +110,35 @@ class RascalPrinter
         return $res;
     }
 
-    public static function printUpdateQuery($parsed){
+    public static function printUpdateQuery($parsed)
+    {
         $res = "updateQuery(";
 
         // print the tables to be updated
-        if(!is_null($parsed->tables)) {
+        if (!is_null($parsed->tables)) {
             $res .= self::printExpressionList($parsed->tables);
         }
 
-        if(!is_null($parsed->set)){
+        if (!is_null($parsed->set)) {
             //TODO: set operations
             $res .= "set operations are not yet implemented";
         }
 
-        if(!is_null($parsed->where)){
+        if (!is_null($parsed->where)) {
             $res .= ", " . self::printWhere($parsed->where);
-        }
-        else{
+        } else {
             $res .= ", noWhere()";
         }
 
-        if(!is_null($parsed->order)){
+        if (!is_null($parsed->order)) {
             $res .= ", " . self::printOrderBy($parsed->order);
-        }
-        else{
+        } else {
             $res .= ", noOrderBy()";
         }
 
-        if(!is_null($parsed->limit)){
+        if (!is_null($parsed->limit)) {
             $res .= self::printLimit($parsed->limit);
-        }
-        else{
+        } else {
             $res .= ", noLimit()";
         }
 
@@ -157,28 +147,29 @@ class RascalPrinter
         return $res;
     }
 
-    public static function printInsertQuery($parsed){
+    public static function printInsertQuery($parsed)
+    {
         $res = "insertQuery(";
 
         // print the table data will be inserted into
         $res .= self::printExpression($parsed->into);
 
-        if(!is_null($parsed->values)){
+        if (!is_null($parsed->values)) {
             //TODO: values statement
             $res .= "values clause is not yet implemented";
         }
 
-        if(!is_null($parsed->set)){
+        if (!is_null($parsed->set)) {
             //TODO: set operations
             $res .= "set operations are not yet implemented";
         }
 
-        if(!is_null($parsed->select)){
+        if (!is_null($parsed->select)) {
             //TODO select operation in insert
             $res .= "select operation in insert query is not yet implemented";
         }
 
-        if(!is_null($parsed->onDuplicateSet)){
+        if (!is_null($parsed->onDuplicateSet)) {
             //TODO: on duplicate set
             $res .= "on duplicate set is not yet implemented";
         }
@@ -187,65 +178,64 @@ class RascalPrinter
         return $res;
     }
 
-    public static function printDeleteQuery($parsed){
+    public static function printDeleteQuery($parsed)
+    {
         $res = "deleteQuery(";
 
         // print the tables to be deleted from
-        if(!is_null($parsed->from)){
+        if (!is_null($parsed->from)) {
             $res .= self::printExpressionList($parsed->from);
         }
 
-        if(!is_null($parsed->using)){
+        if (!is_null($parsed->using)) {
             //TODO: USING clause
             $res .= "using is not yet implemented";
         }
 
-        if(!is_null($parsed->columns)){
+        if (!is_null($parsed->columns)) {
             //todo columns
             $res .= "columns in DELETE is not yet implemented";
         }
 
-        if(!is_null($parsed->partition)){
+        if (!is_null($parsed->partition)) {
             //TODO: implement partitions.
             $res .= "partitions are not yet implemented";
         }
 
-        if(!is_null($parsed->where)){
+        if (!is_null($parsed->where)) {
             $res .= ", " . self::printWhere($parsed->where);
-        }
-        else{
+        } else {
             $res .= ", noWhere()";
         }
 
-        if(!is_null($parsed->order)){
+        if (!is_null($parsed->order)) {
             $res .= ", " . self::printOrderBy($parsed->order);
-        }
-        else{
+        } else {
             $res .= ", noOrderBy()";
         }
 
-        if(!is_null($parsed->limit)){
+        if (!is_null($parsed->limit)) {
             $res .= self::printLimit($parsed->limit);
-        }
-        else{
+        } else {
             $res .= ", noLimit()";
         }
-        
+
         $res .= ")";
 
         return $res;
     }
 
-    public static function printExpression($exp){
-        if(!is_null($exp->queryHole)){
+    public static function printExpression($exp)
+    {
+        if (!is_null($exp->queryHole)) {
             return "hole(" . $exp->queryHole . ")";
         }
 
         $res = "";
-        if(!is_null($exp->alias)){
+        if (!is_null($exp->alias)) {
             $res .= "aliased(";
         }
-        switch($exp->expr){
+        switch ($exp->expr) {
             case("*"):
                 $res .= "star()";
                 break;
@@ -272,12 +262,12 @@ class RascalPrinter
                 break;
         }
 
-        if(!is_null($exp->function)){
+        if (!is_null($exp->function)) {
             //TODO: handle function params
             $res .= "call(\"" . $exp->function . "\")";
         }
 
-        if(!is_null($exp->alias)){
+        if (!is_null($exp->alias)) {
             $res .= ", \"" . $exp->alias . "\")";
         }
 
@@ -287,13 +277,15 @@ class RascalPrinter
     /*
      * prints comma separated rascal list of expressions
      */
-    public static function printExpressionList($expressions){
+    public static function printExpressionList($expressions)
+    {
         $size = sizeof($expressions);
 
         $res = "[";
-        for($i = 0; $i < $size - 1; $i++){
+        for ($i = 0; $i < $size - 1; $i++) {
             $res .= self::printExpression($expressions[$i]) . ", ";
-        } $res .= self::printExpression($expressions[$size - 1]) . "]";
+        }
+        $res .= self::printExpression($expressions[$size - 1]) . "]";
 
         return $res;
     }
@@ -302,25 +294,28 @@ class RascalPrinter
     /*
      * Prints a where clause in rascal format
      */
-    public static function printWhere($where){
-        return "where(" . self::printConditions(self::conditionsToTree($where)) . ")";
+    public static function printWhere($where)
+    {
+        return "where(" . self::printConditions($where) . ")";
     }
 
     /*
      * Prints a having clause in rascal format
      */
-    public static function printHaving($having){
-        return "where(" . self::printConditions(self::conditionsToTree($having)) . ")";
+    public static function printHaving($having)
+    {
+        return "where(" . self::printConditions($having) . ")";
     }
 
     /*
      * Prints GROUP BY clause in rascal format
      */
-    public static function printGroupBy($grouping){
+    public static function printGroupBy($grouping)
+    {
         $size = sizeof($grouping);
 
         $res = "groupBy({";
-        for($i = 0; $i < $size - 1; $i++){
+        for ($i = 0; $i < $size - 1; $i++) {
             $res .= "<" . self::printExpression($grouping[$i]->expr) . ", \"" . $grouping[$i]->type . "\">";
             $res .= ", ";
         }
@@ -334,11 +329,12 @@ class RascalPrinter
     /*
      * Prints ORDER BY clause in rascal format
      */
-    public static function printOrderBy($ordering){
+    public static function printOrderBy($ordering)
+    {
         $size = sizeof($ordering);
 
         $res = "orderBy({";
-        for($i = 0; $i < $size - 1; $i++){
+        for ($i = 0; $i < $size - 1; $i++) {
             $res .= "<" . self::printExpression($ordering[$i]->expr) . ", \"" . $ordering[$i]->type . "\">";
             $res .= ", ";
         }
@@ -349,9 +345,10 @@ class RascalPrinter
         return $res;
     }
 
-    public static function printLimit($limit){
+    public static function printLimit($limit)
+    {
         $res = ", limit(" . $limit->rowCount;
-        if($limit->offset !== 0){
+        if ($limit->offset !== 0) {
             $res .= ", " . $limit->offset;
         }
         $res .= ")";
@@ -362,119 +359,21 @@ class RascalPrinter
     /*
      * prints conditions from WHERE or HAVING clause in rascal format
      */
-    public static function printConditions($tree){
-        if(is_null($tree->left) && is_null($tree->right)){
+    public static function printConditions($tree)
+    {
+        if (is_null($tree->left) && is_null($tree->right)) {
             return "condition(\"" . $tree->value . "\")";
-        }
-        else if($tree->value === "NOT"){
+        } else if ($tree->value === "NOT") {
             return "not(\"" . self::printConditions($tree->left) . "\")";
-        }
-        else if($tree->value === "AND" || $tree->value === "&&"){
+        } else if ($tree->value === "AND" || $tree->value === "&&") {
             return "and(" . self::printConditions($tree->left) . ", " . self::printConditions($tree->right) . ")";
-        }
-        else if($tree->value === "OR" || $tree->value === "||"){
+        } else if ($tree->value === "OR" || $tree->value === "||") {
             return "or(" . self::printConditions($tree->left) . ", " . self::printConditions($tree->right) . ")";
-        }
-        else if($tree->value === "XOR"){
+        } else if ($tree->value === "XOR") {
             return "xor(" . self::printConditions($tree->left) . ", " . self::printConditions($tree->right) . ")";
-        }
-        else{
+        } else {
             echo "unexpected condition tree node";
             exit(1);
         }
-    }
-
-    /*
-     * uses shunting yard to get the conditions from WHERE or HAVING in a tree data structure
-     * TODO: process expressions rather than just print them as strings
-     * TODO: handle parentheses
-     */
-    public static function conditionsToTree($conditions){
-        $output = array();
-        $stack = array();
-        $precedence = [
-          "NOT" => 3,
-            "AND" => 2,
-            "&&" => 2,
-            "OR" => 1,
-            "||" => 1,
-            "XOR" => 1
-        ];
-
-        foreach($conditions as $condition){
-            if($condition->isOperator === false){
-                // this condition starts with a left paren, push it to the operator stack
-                while($condition->expr[0] === "("){
-                    array_push($stack, "(");
-                    $condition->expr = trim(substr($condition->expr, 1));
-                }
-
-                // this condition is negated, push "NOT" onto the operator stack
-                if(strtoupper(substr($condition->expr, 0, 3)) === "NOT") {
-                    array_push($stack, "NOT");
-                    $condition->expr = trim(substr($condition->expr, 4));
-                }
-
-                // this condition ends with a right paren, build up the tree until a left paren is on top of the stack
-                while(substr($condition->expr, -1) === ")"){
-                    $condition->expr = trim(substr($condition->expr, 0, sizeof($condition->expr) - 2));
-                    while(!(sizeof($stack) === 0)){
-                        $op = array_pop($stack);
-                        if($op === "("){
-                            break;
-                        }
-                        else{
-                            $node = new ConditionNode($op);
-                            $node->left = array_pop($output);
-                            if($op !== "NOT"){
-                                $node->right = array_pop($output);
-                            }
-                            array_push($output, $node);
-                        }
-                    }
-                }
-                // push the condition as a new leaf
-                array_push($output, new ConditionNode($condition->expr));
-            }
-            else{
-                $op1 = strtoupper($condition->expr);
-                while(!(sizeof($stack) === 0) && $stack[sizeof($stack) - 1] !== '('){
-                    $op2 = $stack[sizeof($stack) - 1];
-                    if(in_array($op1, Condition::$DELIMITERS) && $precedence[$op1] <= $precedence[$op2]){
-                        $node = new ConditionNode($op2);
-                        $node->left = array_pop($output);
-                        if($op2 !== "NOT") {
-                            $node->right = array_pop($output);
-                        }
-                        array_push($output, $node);
-                        array_pop($stack);
-                    }
-                }
-                array_push($stack, $op1);
-            }
-        }
-        while(!(sizeof($stack) === 0)) {
-            $op = array_pop($stack);
-            $node = new ConditionNode($op);
-            $node->left = array_pop($output);
-            if(!($op === "NOT")) {
-                $node->right = array_pop($output);
-            }
-            array_push($output, $node);
-        }
-        return $output[0];
-    }
-}
-
-class ConditionNode
-{
-    public $value;
-    public $left;
-    public $right;
-
-    public function __construct($item) {
-        $this->value = $item;
-        $this->left = null;
-        $this->right = null;
     }
 }
