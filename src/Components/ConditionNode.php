@@ -12,7 +12,7 @@ namespace PhpMyAdmin\SqlParser\Components;
  * Class ConditionNode
  * @package PhpMyAdmin\SqlParser\Components
  *
- * Node for building a condition tree
+ * Node of a tree structure representation of a WHERE, HAVING, or ON clause
  */
 class ConditionNode
 {

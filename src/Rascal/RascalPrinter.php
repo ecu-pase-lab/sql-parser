@@ -96,8 +96,10 @@ class RascalPrinter
         }
 
         if (!is_null($parsed->join)) {
-            //TODO: implement JOIN
-            $res .= "join is not yet implemented";
+            $res .= ", " . self::printJoins($parsed->join);
+        }
+        else{
+            $res .= ", []";
         }
 
         if (sizeof($parsed->union) !== 0) {
@@ -375,5 +377,45 @@ class RascalPrinter
             echo "unexpected condition tree node";
             exit(1);
         }
+    }
+
+    /*
+     * prints a JOIN clause in rascal format
+     */
+    public static function printJoin($join){
+        $res = "";
+        $type = "\"" . $join->type . "\"";
+        $joinExp = self::printExpression($join->expr);
+
+        if(!is_null($join->on)){
+            $res .= "joinOn(" . $type . ", " . $joinExp . ", ";
+            $res .= self::printConditions($join->on);
+        }
+        else if(!is_null($join->using)){
+            $res .= "joinUsing(" . $type . ", " . $joinExp . ", ";
+            $size = sizeof($join->using->values);
+            $res .= "[";
+            for($i = 0; $i < $size - 1; $i++){
+                $res .= "\"" . $join->using->values[$i] . "\", ";
+            }
+            $res .= "\"" . $join->using->values[$size - 1] . "\"]";
+        }
+        else{
+            $res .= "simpleJoin(". $type .",  " . $joinExp;
+        }
+
+        return $res . ")";
+    }
+
+    public static function printJoins($joins){
+        $size = sizeof($joins);
+
+        $res = "[";
+        for ($i = 0; $i < $size - 1; $i++) {
+            $res .= self::printJoin($joins[$i]) . ", ";
+        }
+        $res .= self::printJoin($joins[$size - 1]) . "]";
+
+        return $res;
     }
 }
