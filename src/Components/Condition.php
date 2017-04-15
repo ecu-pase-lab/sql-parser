@@ -96,6 +96,7 @@ class Condition extends Component
 
         /**
          * keeps track of tokens that make up a simple condition
+         * TODO: change this from a string to a token array for further processing
          */
         $condition = "";
 
@@ -202,6 +203,18 @@ class Condition extends Component
                 continue;
             }
 
+            if($token->flags & Token::FLAG_KEYWORD_FUNCTION){
+                // this token is a SQL function keyword, add it do the condition and keep consuming tokens until a right parenthesis is found.
+                $condition .= $token->value;
+                do{
+                    if(in_array($token->value, static::$DELIMITERS, true) || $token->value === "NOT"){
+                        break;
+                    }
+                    $token = $list[++$list->idx];
+                    $condition .= $token->value;
+                }while($list->idx < $list->count && $token->value !== ")");
+            }
+
             if ($token->type === Token::TYPE_OPERATOR) {
                 if ($token->value === "(") {
                     ++$brackets;
@@ -259,7 +272,6 @@ class Condition extends Component
         }
 
         --$list->idx;
-        var_dump($output);
         return $output[0];
     }
 
