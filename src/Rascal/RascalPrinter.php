@@ -154,11 +154,20 @@ class RascalPrinter
         $res = "insertQuery(";
 
         // print the table data will be inserted into
-        $res .= self::printExpression($parsed->into);
+        $res .= self::printInto($parsed->into);
 
         if (!is_null($parsed->values)) {
-            //TODO: values statement
-            $res .= "values clause is not yet implemented";
+            $res .= ", [";
+            $size = sizeof($parsed->values);
+            // loop in case the query inserts multiple sets of values
+            for($i = 0; $i < $size - 1; $i++){
+                $res .= self::printArrayObj($parsed->values[$i]) . ", ";
+            }
+            $res .= self::printArrayObj($parsed->values[$size - 1]);
+            $res .= "]";
+        }
+        else{
+            $res .= ", []";
         }
 
         if (!is_null($parsed->set)) {
@@ -189,9 +198,11 @@ class RascalPrinter
             $res .= self::printExpressionList($parsed->from);
         }
 
-        if (!is_null($parsed->using)) {
-            //TODO: USING clause
-            $res .= "using is not yet implemented";
+        if (!empty($parsed->using)) {
+            $res .= ", " . self::printArrayObj($parsed->using);
+        }
+        else{
+            $res .= ", []";
         }
 
         if (!is_null($parsed->columns)) {
@@ -273,7 +284,7 @@ class RascalPrinter
             $res .= ", \"" . $exp->alias . "\")";
         }
 
-        return $res;
+        return empty($res) ? "unknownExp(\"" . $exp->expr . "\")" : $res;
     }
 
     /*
@@ -393,12 +404,7 @@ class RascalPrinter
         }
         else if(!is_null($join->using)){
             $res .= "joinUsing(" . $type . ", " . $joinExp . ", ";
-            $size = sizeof($join->using->values);
-            $res .= "[";
-            for($i = 0; $i < $size - 1; $i++){
-                $res .= "\"" . $join->using->values[$i] . "\", ";
-            }
-            $res .= "\"" . $join->using->values[$size - 1] . "\"]";
+            $res .= self::printArrayObj($join->using);
         }
         else{
             $res .= "simpleJoin(". $type .",  " . $joinExp;
@@ -417,5 +423,41 @@ class RascalPrinter
         $res .= self::printJoin($joins[$size - 1]) . "]";
 
         return $res;
+    }
+
+    public static function printArrayObj($array){
+        $size = sizeof($array->values);
+        $res = "[";
+        for($i = 0; $i < $size - 1; $i++){
+            $res .= "\"" . $array->values[$i] . "\", ";
+        }
+        $res .= "\"" . $array->values[$size - 1] . "\"]";
+
+        return $res;
+    }
+
+    /*
+     * prints information from an INTO clause in rascal format
+     */
+    public static function printInto($into){
+        $res = "into(";
+        if(!is_null($into->dest)){
+            $res .= self::printExpression($into->dest) . ", ";
+        }
+
+        if(!is_null($into->columns)){
+            $size = sizeof($into->columns);
+            $res .= "[";
+            for($i = 0; $i < $size - 1; $i++){
+                $res .= "\"" . $into->columns[$i] . "\", ";
+            }
+            $res .= "\"" . $into->columns[$size - 1] . "\"]";
+        }
+
+        if(!is_null($into->values)){
+            //TODO values field for into
+            $res .= "select...into is not yet implemented";
+        }
+        return $res . ")";
     }
 }
