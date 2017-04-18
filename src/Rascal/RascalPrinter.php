@@ -490,16 +490,19 @@ class RascalPrinter
     public static function printInto($into){
         $res = "into(";
         if(!is_null($into->dest)){
-            $res .= self::printExpression($into->dest) . ", ";
+            $res .= self::printExpression($into->dest);
         }
 
         if(!is_null($into->columns)){
             $size = sizeof($into->columns);
-            $res .= "[";
+            $res .= ", [";
             for($i = 0; $i < $size - 1; $i++){
                 $res .= "\"" . $into->columns[$i] . "\", ";
             }
             $res .= "\"" . $into->columns[$size - 1] . "\"]";
+        }
+        else{
+            $res .= ", []";
         }
 
         if(!is_null($into->values)){
