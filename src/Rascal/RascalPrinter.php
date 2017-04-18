@@ -7,6 +7,7 @@ use PhpMyAdmin\SqlParser\Parser;
 use PhpMyAdmin\SqlParser\Statements\DeleteStatement;
 use PhpMyAdmin\SqlParser\Statements\InsertStatement;
 use PhpMyAdmin\SqlParser\Statements\SelectStatement;
+use PhpMyAdmin\SqlParser\Statements\SetStatement;
 use PhpMyAdmin\SqlParser\Statements\UpdateStatement;
 
 require_once("../../vendor/autoload.php");
@@ -33,6 +34,8 @@ class RascalPrinter
             return self::printInsertQuery($parsed);
         } else if ($parsed instanceof DeleteStatement) {
             return self::printDeleteQuery($parsed);
+        } else if($parsed instanceof SetStatement){
+            return self::printSetQuery($parsed);
         } else {
             return "unknownQuery()";
         }
@@ -237,6 +240,17 @@ class RascalPrinter
             $res .= self::printLimit($parsed->limit);
         } else {
             $res .= ", noLimit()";
+        }
+
+        $res .= ")";
+
+        return $res;
+    }
+
+    public static function printSetQuery($parsed){
+        $res = "setQuery(";
+        if(!is_null($parsed->set)){
+            $res .= self::printSetOperations($parsed->set);
         }
 
         $res .= ")";
