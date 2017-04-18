@@ -5,6 +5,7 @@ namespace PhpMyAdmin\SqlParser\Rascal;
 use PhpMyAdmin\SqlParser\Components\Condition;
 use PhpMyAdmin\SqlParser\Parser;
 use PhpMyAdmin\SqlParser\Statements\DeleteStatement;
+use PhpMyAdmin\SqlParser\Statements\DropStatement;
 use PhpMyAdmin\SqlParser\Statements\InsertStatement;
 use PhpMyAdmin\SqlParser\Statements\SelectStatement;
 use PhpMyAdmin\SqlParser\Statements\SetStatement;
@@ -36,6 +37,8 @@ class RascalPrinter
             return self::printDeleteQuery($parsed);
         } else if($parsed instanceof SetStatement){
             return self::printSetQuery($parsed);
+        } else if($parsed instanceof DropStatement){
+            return self::printDropQuery($parsed);
         } else {
             return "unknownQuery()";
         }
@@ -252,6 +255,31 @@ class RascalPrinter
         if(!is_null($parsed->set)){
             $res .= self::printSetOperations($parsed->set);
         }
+        else{
+            $res .= "[]";
+        }
+
+        $res .= ")";
+
+        return $res;
+    }
+
+    public static function printDropQuery($parsed){
+        $res = "dropQuery(";
+
+        if(!is_null($parsed->fields)){
+            $res .= self::printExpressionList($parsed->fields);
+        }
+        else{
+            $res .= "[]";
+        }
+
+        if(!is_null($parsed->table)){
+            $res .= ", " . self::printExpression($parsed->table);
+        }
+        else{
+            $res .= ", \"\"";
+        }
 
         $res .= ")";
 
@@ -380,9 +408,9 @@ class RascalPrinter
 
     public static function printLimit($limit)
     {
-        $res = ", limit(" . $limit->rowCount;
+        $res = ", limit(\"" . $limit->rowCount . "\"";
         if ($limit->offset !== 0) {
-            $res .= ", " . $limit->offset;
+            $res .= ", \"" . $limit->offset . "\"";
         }
         $res .= ")";
 
