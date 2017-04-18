@@ -122,8 +122,10 @@ class RascalPrinter
         }
 
         if (!is_null($parsed->set)) {
-            //TODO: set operations
-            $res .= "set operations are not yet implemented";
+            $res .= ", " . self::printSetOperations($parsed->set);
+        }
+        else{
+            $res .= ", []";
         }
 
         if (!is_null($parsed->where)) {
@@ -171,8 +173,10 @@ class RascalPrinter
         }
 
         if (!is_null($parsed->set)) {
-            //TODO: set operations
-            $res .= "set operations are not yet implemented";
+            $res .= ", " . self::printSetOperations($parsed->set);
+        }
+        else{
+            $res .= ", []";
         }
 
         if (!is_null($parsed->select)) {
@@ -181,8 +185,10 @@ class RascalPrinter
         }
 
         if (!is_null($parsed->onDuplicateSet)) {
-            //TODO: on duplicate set
-            $res .= "on duplicate set is not yet implemented";
+            $res .= ", " . self::printSetOperations($parsed->onDuplicateSet);
+        }
+        else{
+            $res .= ", []";
         }
         $res .= ")";
 
@@ -459,5 +465,20 @@ class RascalPrinter
             $res .= "select...into is not yet implemented";
         }
         return $res . ")";
+    }
+
+    /*
+     * prints a SQL set operation in rascal format
+     */
+    public static function printSetOperations($array){
+        $res = "[";
+        $size = sizeof($array);
+        for($i = 0; $i < $size - 1; $i++){
+            $res .= "setOp(\"" . $array[$i]->column . "\", \"" . $array[$i]->value . "\"), ";
+        }
+        $res .= "setOp(\"" . $array[$size - 1]->column . "\", \"" . $array[$size - 1]->value . "\")";
+        $res .= "]";
+
+        return $res;
     }
 }
