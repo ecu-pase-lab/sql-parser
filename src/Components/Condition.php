@@ -213,6 +213,7 @@ class Condition extends Component
                     $token = $list[++$list->idx];
                     $condition .= $token->value;
                 }while($list->idx < $list->count && $token->value !== ")");
+                continue;
             }
 
             if ($token->type === Token::TYPE_OPERATOR) {
