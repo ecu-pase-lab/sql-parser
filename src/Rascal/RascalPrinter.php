@@ -186,8 +186,10 @@ class RascalPrinter
         }
 
         if (!is_null($parsed->select)) {
-            //TODO select operation in insert
-            $res .= "select operation in insert query is not yet implemented";
+            $res .= ", select(" . self::printSelectQuery($parsed->select) . ")";
+        }
+        else{
+            $res .= "noSelect()";
         }
 
         if (!is_null($parsed->onDuplicateSet)) {
