@@ -290,46 +290,50 @@ class RascalPrinter
 
     public static function printExpression($exp)
     {
-        if (!is_null($exp->queryHole)) {
-            return "hole(" . $exp->queryHole . ")";
-        }
 
         $res = "";
         if (!is_null($exp->alias)) {
             $res .= "aliased(";
         }
-        switch ($exp->expr) {
-            case("*"):
-                $res .= "star()";
-                break;
-            // this expression is a column name
-            case($exp->column):
-                $res .= "name(column(\"" . $exp->column . "\"))";
-                break;
-            // this expression is a table name
-            case($exp->table):
-                $res .= "name(table(\"" . $exp->table . "\"))";
-                break;
-            // this expression is a database name
-            case($exp->database):
-                $res .= "name(database(\"" . $exp->database . "\"))";
-                break;
-            case($exp->table . "." . $exp->column):
-                $res .= "name(tableColumn(\"" . $exp->table . "\", \"" . $exp->column . "\"))";
-                break;
-            case($exp->database . "." . $exp->table):
-                $res .= "name(databaseTable(\"" . $exp->database . "\", \"" . $exp->table . "\"))";
-                break;
-            case($exp->database . "." . $exp->table . "." . $exp->column):
-                $res .= "name(databaseTableColumn(\"" . $exp->database . "\", \"" . $exp->table . "\", \"" . $exp->column . "\"))";
-                break;
+
+        if (!is_null($exp->queryHole)) {
+            $res .= "hole(" . $exp->queryHole . ")";
         }
 
-        if (!is_null($exp->function)) {
-            //TODO: handle function params
-            $res .= "call(\"" . $exp->function . "\")";
-        }
+        else {
+            switch ($exp->expr) {
+                case("*"):
+                    $res .= "star()";
+                    break;
+                // this expression is a column name
+                case($exp->column):
+                    $res .= "name(column(\"" . $exp->column . "\"))";
+                    break;
+                // this expression is a table name
+                case($exp->table):
+                    $res .= "name(table(\"" . $exp->table . "\"))";
+                    break;
+                // this expression is a database name
+                case($exp->database):
+                    $res .= "name(database(\"" . $exp->database . "\"))";
+                    break;
+                case($exp->table . "." . $exp->column):
+                    $res .= "name(tableColumn(\"" . $exp->table . "\", \"" . $exp->column . "\"))";
+                    break;
+                case($exp->database . "." . $exp->table):
+                    $res .= "name(databaseTable(\"" . $exp->database . "\", \"" . $exp->table . "\"))";
+                    break;
+                case($exp->database . "." . $exp->table . "." . $exp->column):
+                    $res .= "name(databaseTableColumn(\"" . $exp->database . "\", \"" . $exp->table . "\", \"" . $exp->column . "\"))";
+                    break;
+            }
 
+            if (!is_null($exp->function)) {
+                //TODO: handle function params
+                $res .= "call(\"" . $exp->function . "\")";
+            }
+        }
+        
         if (!is_null($exp->alias)) {
             $res .= ", \"" . $exp->alias . "\")";
         }
