@@ -189,7 +189,7 @@ class RascalPrinter
             $res .= ", select(" . self::printSelectQuery($parsed->select) . ")";
         }
         else{
-            $res .= "noSelect()";
+            $res .= ", noSelect()";
         }
 
         if (!is_null($parsed->onDuplicateSet)) {
@@ -333,7 +333,7 @@ class RascalPrinter
                 $res .= "call(\"" . $exp->function . "\")";
             }
         }
-        
+
         if (!is_null($exp->alias)) {
             $res .= ", \"" . $exp->alias . "\")";
         }
