@@ -11,6 +11,7 @@ use PhpMyAdmin\SqlParser\Statements\InsertStatement;
 use PhpMyAdmin\SqlParser\Statements\ReplaceStatement;
 use PhpMyAdmin\SqlParser\Statements\SelectStatement;
 use PhpMyAdmin\SqlParser\Statements\SetStatement;
+use PhpMyAdmin\SqlParser\Statements\TruncateStatement;
 use PhpMyAdmin\SqlParser\Statements\UpdateStatement;
 
 require_once("../../vendor/autoload.php");
@@ -45,7 +46,9 @@ class RascalPrinter
             return self::printAlterQuery($parsed);
         } else if($parsed instanceof ReplaceStatement){
             return self::printReplaceQuery($parsed);
-        } else {
+        } else if($parsed instanceof TruncateStatement){
+            return self::printTruncateQuery($parsed);
+        } else{
             return "unknownQuery()";
         }
     }
@@ -343,6 +346,14 @@ class RascalPrinter
         else{
             $res .= ", noSelect()";
         }
+        return $res . ")";
+    }
+
+    public static function PrintTruncateQuery($parsed){
+        $res = "truncateQuery(";
+
+        $res .= self::printExpression($parsed->table);
+
         return $res . ")";
     }
 
