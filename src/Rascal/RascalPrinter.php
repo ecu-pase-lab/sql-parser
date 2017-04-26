@@ -4,9 +4,11 @@ namespace PhpMyAdmin\SqlParser\Rascal;
 
 use PhpMyAdmin\SqlParser\Components\Condition;
 use PhpMyAdmin\SqlParser\Parser;
+use PhpMyAdmin\SqlParser\Statements\AlterStatement;
 use PhpMyAdmin\SqlParser\Statements\DeleteStatement;
 use PhpMyAdmin\SqlParser\Statements\DropStatement;
 use PhpMyAdmin\SqlParser\Statements\InsertStatement;
+use PhpMyAdmin\SqlParser\Statements\ReplaceStatement;
 use PhpMyAdmin\SqlParser\Statements\SelectStatement;
 use PhpMyAdmin\SqlParser\Statements\SetStatement;
 use PhpMyAdmin\SqlParser\Statements\UpdateStatement;
@@ -39,6 +41,10 @@ class RascalPrinter
             return self::printSetQuery($parsed);
         } else if($parsed instanceof DropStatement){
             return self::printDropQuery($parsed);
+        } else if($parsed instanceof AlterStatement){
+            return self::printAlterQuery($parsed);
+        } else if($parsed instanceof ReplaceStatement){
+            return self::printReplaceQuery($parsed);
         } else {
             return "unknownQuery()";
         }
@@ -286,6 +292,58 @@ class RascalPrinter
         $res .= ")";
 
         return $res;
+    }
+
+    public static function printAlterQuery($parsed){
+        $res = "alterQuery(";
+
+        if(!is_null($parsed->table)){
+            $res .= self::printExpression($parsed->table);
+        }
+
+        //TODO: altered fields and options
+
+        return $res . ")";
+    }
+
+    public static function printReplaceQuery($parsed){
+        $res = "replaceQuery(";
+
+        if(!is_null($parsed->into)){
+            $res .= self::printInto($parsed->into);
+        }
+        else{
+            $res .= "noInto()";
+        }
+
+        if(!is_null($parsed->values)){
+            $res .= ", [";
+            $size = sizeof($parsed->values);
+            // loop in case the query inserts multiple sets of values
+            for($i = 0; $i < $size - 1; $i++){
+                $res .= self::printArrayObj($parsed->values[$i]) . ", ";
+            }
+            $res .= self::printArrayObj($parsed->values[$size - 1]);
+            $res .= "]";
+        }
+        else{
+            $res .= ", []";
+        }
+
+        if(!is_null($parsed->set)){
+            $res .= ", " . self::printSetOperations($parsed->set);
+        }
+        else{
+            $res .= ", []";
+        }
+
+        if(!is_null($parsed->select)){
+            $res .=  ", " . self::printSelectQuery($parsed->select);
+        }
+        else{
+            $res .= ", noSelect()";
+        }
+        return $res . ")";
     }
 
     public static function printExpression($exp)
