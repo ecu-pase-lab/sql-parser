@@ -195,10 +195,10 @@ class RascalPrinter
         }
 
         if (!is_null($parsed->select)) {
-            $res .= ", select(" . self::printSelectQuery($parsed->select) . ")";
+            $res .= ", " .self::printSelectQuery($parsed->select);
         }
         else{
-            $res .= ", noSelect()";
+            $res .= ", noQuery()";
         }
 
         if (!is_null($parsed->onDuplicateSet)) {
@@ -344,7 +344,7 @@ class RascalPrinter
             $res .=  ", " . self::printSelectQuery($parsed->select);
         }
         else{
-            $res .= ", noSelect()";
+            $res .= ", noQuery()";
         }
         return $res . ")";
     }
