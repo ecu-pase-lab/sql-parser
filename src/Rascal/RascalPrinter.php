@@ -95,7 +95,7 @@ class RascalPrinter
         }
 
         if (!is_null($parsed->limit)) {
-            $res .= self::printLimit($parsed->limit);
+            $res .= ", " . self::printLimit($parsed->limit);
         } else {
             $res .= ", noLimit()";
         }
@@ -156,7 +156,7 @@ class RascalPrinter
         }
 
         if (!is_null($parsed->limit)) {
-            $res .= self::printLimit($parsed->limit);
+            $res .= ", " . self::printLimit($parsed->limit);
         } else {
             $res .= ", noLimit()";
         }
@@ -251,7 +251,7 @@ class RascalPrinter
         }
 
         if (!is_null($parsed->limit)) {
-            $res .= self::printLimit($parsed->limit);
+            $res .= ", " . self::printLimit($parsed->limit);
         } else {
             $res .= ", noLimit()";
         }
@@ -275,6 +275,7 @@ class RascalPrinter
         return $res;
     }
 
+    // TODO: needs work for cases where no table is provided. should also print options array
     public static function printDropQuery($parsed){
         $res = "dropQuery(";
 
@@ -305,6 +306,7 @@ class RascalPrinter
         }
 
         //TODO: altered fields and options
+        $res .= "I am here to force a parse error!";
 
         return $res . ")";
     }
@@ -483,9 +485,11 @@ class RascalPrinter
 
     public static function printLimit($limit)
     {
-        $res = ", limit(\"" . $limit->rowCount . "\"";
-        if ($limit->offset !== 0) {
-            $res .= ", \"" . $limit->offset . "\"";
+        if ($limit->offset === 0) {
+            $res = "limit(\"" . $limit->rowCount . "\"";
+        }
+        else{
+            $res = "limitWithOffset(\"" .  $limit->rowCount . "\", \"" . $limit->offset . "\"";
         }
         $res .= ")";
 
