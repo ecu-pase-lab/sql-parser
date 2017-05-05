@@ -846,6 +846,9 @@ class Lexer extends Core
             $token .= $this->str[$this->last];
         }
 
+        if(preg_match('/^\'\?[0-9]+\'$/', $token) === 1){
+            return new Token(substr($token, 1, sizeof($token) - 2), Token::TYPE_HOLE);
+        }
         return new Token($token, Token::TYPE_STRING, $flags);
     }
 
