@@ -204,8 +204,14 @@ class Condition extends Component
             }
 
             if($token->flags & Token::FLAG_KEYWORD_FUNCTION){
-                // this token is a SQL function keyword, add it do the condition and keep consuming tokens until a right parenthesis is found.
                 $condition .= $token->value;
+
+                // non-reserved keywords can also be used as identifiers
+                if(!($token->flags & Token::FLAG_KEYWORD_RESERVED) && $list[$list->idx + 1] !== "("){
+                    continue;
+                }
+
+                // this token is a SQL function, add it do the condition and keep consuming tokens until a right parenthesis is found.
                 do{
                     if(in_array($token->value, static::$DELIMITERS, true) || $token->value === "NOT"){
                         break;
