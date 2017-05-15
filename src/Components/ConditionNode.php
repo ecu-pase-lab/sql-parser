@@ -18,8 +18,19 @@ use PhpMyAdmin\SqlParser\TokensList;
  */
 class ConditionNode
 {
+    /**
+     * @var SimpleCondition
+     */
     public $value;
+
+    /**
+     * @var ConditionNode | null
+     */
     public $left;
+
+    /**
+     * @var ConditionNode | null
+     */
     public $right;
 
     public function __construct($item) {
@@ -37,14 +48,14 @@ class SimpleCondition
     public $list;
 
     public function __construct($tokens){
-        $this->tokens = $tokens;
+        $this->list = $tokens;
     }
 
     /**
      * @return SimpleCondition
      */
     public function parse(){
-        //TODO: implement parsing
+        
     }
 }
 
@@ -61,28 +72,37 @@ class BetweenCondition extends SimpleCondition
      *
      * @var bool
      */
-    public $not = false;
+    public $not;
 
     /**
      * expression before BETWEEN keyword
      *
      * @var string
      */
-    public $expr = "";
+    public $expr;
 
     /**
      * lower bounds of the BETWEEN statement
      *
      * @var string
      */
-    public $lowerBounds = "";
+    public $lowerBounds;
 
     /**
      * upper bounds of the BETWEEN statement
      *
      * @var string
      */
-    public $upperBounds = "";
+    public $upperBounds;
+
+    public function __construct($tokens, $expr, $lowerBounds, $upperBounds, $not = false)
+    {
+        parent::__construct($tokens);
+        $this->expr = $expr;
+        $this->lowerBounds = $lowerBounds;
+        $this->upperBounds = $upperBounds;
+        $this->not = $not;
+    }
 }
 
 /**
@@ -98,14 +118,21 @@ class NullCondition extends SimpleCondition
      *
      * @var bool
      */
-    public $not = false;
+    public $not;
 
     /**
      * The expression checked for null
      *
      * @var string
      */
-    public $expr = "";
+    public $expr;
+
+    public function __construct($tokens, $expr, $not = false)
+    {
+        parent::__construct($tokens);
+        $this->expr = $expr;
+        $this->not = $not;
+    }
 }
 
 /**
@@ -116,5 +143,30 @@ class NullCondition extends SimpleCondition
  */
 class ComparisonCondition extends SimpleCondition
 {
-    //TODO implement comparison condtions
+    public static $COMPARISON_OPS = array('=', '!=', '^=', '<>', '>', '<', '>=', '<=');
+
+    /**
+     * @var string
+     */
+    public $lhs;
+
+    /**
+     * @var string in COMPARISON_OPS
+     */
+    public $op;
+
+    /**
+     * ComparisonCondition for cases such as a < b < c, string for cases like a != b
+     *
+     * @var string | ComparisonCondition
+     */
+    public $rhs;
+
+    public function __construct($tokens, $lhs, $op, $rhs)
+    {
+        parent::__construct($tokens);
+        $this->lhs = $lhs;
+        $this->op = $op;
+        $this->rhs = $rhs;
+    }
 }
