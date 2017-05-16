@@ -57,11 +57,12 @@ abstract class SimpleCondition
      *
      * @return SimpleCondition
      */
-    public static function identify(TokensList $list){
+    public static final function identify(TokensList $list){
         $firstExpr = '';
         $foundFirstExpr = false;
-
         $firstOp = '';
+        $foundNot = false;
+
         // loop through leading whitespace to grab the first expression and first operator/keyword
         for(; $list->idx < $list->count; ++$list->idx){
             $token = $list->tokens[$list->idx];
@@ -79,8 +80,20 @@ abstract class SimpleCondition
                 }
                 else{
                     $firstOp = $token->value;
-                    if(in_array($token->value, ComparisonCondition::$COMPARISON_OPS, true)){
-                        
+                    if(in_array($firstOp, ComparisonCondition::$COMPARISON_OPS, true)){
+                        return (new ComparisonCondition($list->tokens, $firstExpr, $firstOp))->parse();
+                    }
+                    else if($token->value === "BETWEEN"){
+                        return (new BetweenCondition($list->tokens, $firstExpr, $foundNot))->parse();
+                    }
+                    else if($token->value === "IS"){
+                        // TODO: other condition types use the IS keyword
+                        return (new NullCondition($list->tokens, $firstExpr, $foundNot))->parse();
+                    }
+                    else if($token->value === "NOT"){
+                        // this simple condition is negated, loop again to get the next operator or keyword
+                        $foundNot = true;
+                        continue;
                     }
                 }
             }
@@ -91,7 +104,10 @@ abstract class SimpleCondition
         }
     }
 
-    public abstract function parse($tokens);
+    /**
+     * @return SimpleCondition
+     */
+    public abstract function parse();
 }
 
 /**
@@ -130,16 +146,19 @@ class BetweenCondition extends SimpleCondition
      */
     public $upperBounds;
 
-    public function __construct($tokens, $expr, $lowerBounds, $upperBounds, $not = false)
+    public function __construct($tokens, $firstExpr, $not)
     {
         parent::__construct($tokens);
-        $this->expr = $expr;
-        $this->lowerBounds = $lowerBounds;
-        $this->upperBounds = $upperBounds;
+        $this->expr = $firstExpr;
         $this->not = $not;
     }
 
-    public function parse($tokens, $firstExpr = "", $firstOp = ""){
+    /**
+     * Modifies the lowerBounds and upperBounds fields of this and returns this
+     *
+     * @return BetweenCondition
+     */
+    public function parse(){
         //TODO: implement
         return null;
     }
@@ -167,16 +186,19 @@ class NullCondition extends SimpleCondition
      */
     public $expr;
 
-    public function __construct($tokens, $expr, $not = false)
+    public function __construct($tokens, $firstExpr, $not)
     {
         parent::__construct($tokens);
-        $this->expr = $expr;
+        $this->expr = $firstExpr;
         $this->not = $not;
     }
 
-    public function parse($tokens, $firstExpr = "", $firstOp = ""){
-        //TODO: implement
-        return null;
+    /**
+     * @return NullCondition
+     */
+    public function parse(){
+        // the information provided by SimpleCondition::identify() is enough to parse null conditions
+        return $this;
     }
 }
 
@@ -207,15 +229,20 @@ class ComparisonCondition extends SimpleCondition
      */
     public $rhs;
 
-    public function __construct($tokens, $lhs, $op, $rhs)
+    public function __construct($tokens, $lhs, $op)
     {
         parent::__construct($tokens);
         $this->lhs = $lhs;
         $this->op = $op;
-        $this->rhs = $rhs;
+        $this->rhs = "";
     }
 
-    public function parse($tokens, $firstExpr = "", $firstOp = ""){
+    /**
+     * Modifies the RHS field of this and returns this
+     *
+     * @return ComparisonCondition
+     */
+    public function parse(){
         //TODO: implement
         return null;
     }
@@ -236,8 +263,7 @@ class NotYetImplementedCondition extends SimpleCondition
         }
     }
 
-    public function parse($tokens){
-        //TODO: implement
+    public function parse(){
         return $this;
     }
 }
