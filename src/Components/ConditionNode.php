@@ -165,7 +165,7 @@ class BetweenCondition extends SimpleCondition
      */
     public function parse(){
         // tokens between the BETWEEN and the AND are the lower bounds
-        while($this->list->tokens[$this->list->idx] !== "AND"){
+        while($this->list->tokens[$this->list->idx]->value !== "AND"){
             $token = $this->list->tokens[$this->list->idx];
             if($token->type === Token::TYPE_WHITESPACE){
                 continue;
@@ -190,7 +190,7 @@ class BetweenCondition extends SimpleCondition
                 $this->upperBounds += $token->value;
             }
         }
-        
+
         return $this;
     }
 }
@@ -274,8 +274,23 @@ class ComparisonCondition extends SimpleCondition
      * @return ComparisonCondition
      */
     public function parse(){
-        //TODO: implement
-        return null;
+        for(; $this->list->idx < $this->list->count; ++$this->list->idx){
+            $token = $this->list->tokens[$this->list->idx];
+
+            if($token->type === Token::TYPE_WHITESPACE){
+                continue;
+            }
+            else if(in_array($token->value, ComparisonCondition::$COMPARISON_OPS, true)){
+                // found another comparison operator, the RHS we found is the LHS of another comparison
+                $this->list->idx++;
+                $this->rhs = new ComparisonCondition($this->list, $this->rhs, $token->value);
+                return $this;
+            }
+            else{
+                $this->rhs .= $token->value;
+            }
+        }
+        return $this;
     }
 }
 
@@ -290,7 +305,7 @@ class NotYetImplementedCondition extends SimpleCondition
     {
         parent::__construct($tokensList);
         foreach($tokensList->tokens as $token){
-            $this->str .= $token->token;
+            $this->str .= $token->value;
         }
     }
 
