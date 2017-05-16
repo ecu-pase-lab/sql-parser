@@ -81,14 +81,17 @@ abstract class SimpleCondition
                 else{
                     $firstOp = $token->value;
                     if(in_array($firstOp, ComparisonCondition::$COMPARISON_OPS, true)){
-                        return (new ComparisonCondition($list->tokens, $firstExpr, $firstOp))->parse();
+                        $list->idx++;
+                        return (new ComparisonCondition($list, $firstExpr, $firstOp))->parse();
                     }
                     else if($token->value === "BETWEEN"){
-                        return (new BetweenCondition($list->tokens, $firstExpr, $foundNot))->parse();
+                        $list->idx++;
+                        return (new BetweenCondition($list, $firstExpr, $foundNot))->parse();
                     }
                     else if($token->value === "IS"){
+                        $list->idx++;
                         // TODO: other condition types use the IS keyword
-                        return (new NullCondition($list->tokens, $firstExpr, $foundNot))->parse();
+                        return (new NullCondition($list, $firstExpr, $foundNot))->parse();
                     }
                     else if($token->value === "NOT"){
                         // this simple condition is negated, loop again to get the next operator or keyword
@@ -151,6 +154,8 @@ class BetweenCondition extends SimpleCondition
         parent::__construct($tokens);
         $this->expr = $firstExpr;
         $this->not = $not;
+        $this->lowerBounds = "";
+        $this->upperBounds = "";
     }
 
     /**
@@ -159,8 +164,34 @@ class BetweenCondition extends SimpleCondition
      * @return BetweenCondition
      */
     public function parse(){
-        //TODO: implement
-        return null;
+        // tokens between the BETWEEN and the AND are the lower bounds
+        while($this->list->tokens[$this->list->idx] !== "AND"){
+            $token = $this->list->tokens[$this->list->idx];
+            if($token->type === Token::TYPE_WHITESPACE){
+                continue;
+            }
+            else{
+                $this->lowerBounds += $token->value;
+            }
+            $this->list->idx++;
+        }
+
+        // skip the AND token
+        $this->list->idx++;
+
+        // tokens after the AND are the upper bounds
+        for(; $this->list->idx < $this->list->count; ++$this->list->idx){
+            $token = $this->list->tokens[$this->list->idx];
+
+            if($token->type === Token::TYPE_WHITESPACE){
+                continue;
+            }
+            else{
+                $this->upperBounds += $token->value;
+            }
+        }
+        
+        return $this;
     }
 }
 
