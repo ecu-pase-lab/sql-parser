@@ -283,7 +283,7 @@ class ComparisonCondition extends SimpleCondition
             else if(in_array($token->value, ComparisonCondition::$COMPARISON_OPS, true)){
                 // found another comparison operator, the RHS we found is the LHS of another comparison
                 $this->list->idx++;
-                $this->rhs = new ComparisonCondition($this->list, $this->rhs, $token->value);
+                $this->rhs = (new ComparisonCondition($this->list, $this->rhs, $token->value))->parse();
                 return $this;
             }
             else{
