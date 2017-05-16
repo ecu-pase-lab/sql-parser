@@ -8,6 +8,7 @@
 
 namespace PhpMyAdmin\SqlParser\Components;
 
+use PhpMyAdmin\SqlParser\Token;
 use PhpMyAdmin\SqlParser\TokensList;
 
 /**
@@ -40,23 +41,57 @@ class ConditionNode
     }
 }
 
-class SimpleCondition
+abstract class SimpleCondition
 {
     /**
      * @var TokensList
      */
     public $list;
 
-    public function __construct($tokens){
-        $this->list = $tokens;
+    public function __construct($tokensList){
+        $this->list = $tokensList;
     }
 
     /**
+     * Identifies which child class parse method to call
+     *
      * @return SimpleCondition
      */
-    public function parse(){
-        
+    public static function identify(TokensList $list){
+        $firstExpr = '';
+        $foundFirstExpr = false;
+
+        $firstOp = '';
+        // loop through leading whitespace to grab the first expression and first operator/keyword
+        for(; $list->idx < $list->count; ++$list->idx){
+            $token = $list->tokens[$list->idx];
+
+            // Skipping whitespaces.
+            if ($token->type === Token::TYPE_WHITESPACE) {
+                continue;
+            }
+
+            if(($token->type === Token::TYPE_KEYWORD || $token->type === Token::TYPE_OPERATOR)){
+                // right now we expect the first non comment/whitespace token to be an expression, return a NotYetImplementedCondition
+                // this will be revisited later for other types of conditions
+                if($foundFirstExpr === false) {
+                    return new NotYetImplementedCondition($list->tokens);
+                }
+                else{
+                    $firstOp = $token->value;
+                    if(in_array($token->value, ComparisonCondition::$COMPARISON_OPS, true)){
+                        
+                    }
+                }
+            }
+            else{
+                $firstExpr = $token->value;
+                $foundFirstExpr = true;
+            }
+        }
     }
+
+    public abstract function parse($tokens);
 }
 
 /**
@@ -103,6 +138,11 @@ class BetweenCondition extends SimpleCondition
         $this->upperBounds = $upperBounds;
         $this->not = $not;
     }
+
+    public function parse($tokens, $firstExpr = "", $firstOp = ""){
+        //TODO: implement
+        return null;
+    }
 }
 
 /**
@@ -132,6 +172,11 @@ class NullCondition extends SimpleCondition
         parent::__construct($tokens);
         $this->expr = $expr;
         $this->not = $not;
+    }
+
+    public function parse($tokens, $firstExpr = "", $firstOp = ""){
+        //TODO: implement
+        return null;
     }
 }
 
@@ -168,5 +213,31 @@ class ComparisonCondition extends SimpleCondition
         $this->lhs = $lhs;
         $this->op = $op;
         $this->rhs = $rhs;
+    }
+
+    public function parse($tokens, $firstExpr = "", $firstOp = ""){
+        //TODO: implement
+        return null;
+    }
+}
+
+class NotYetImplementedCondition extends SimpleCondition
+{
+    /**
+     * @var string
+     */
+    public $str = "";
+
+    public function __construct($tokensList)
+    {
+        parent::__construct($tokensList);
+        foreach($tokensList->tokens as $token){
+            $this->str .= $token->token;
+        }
+    }
+
+    public function parse($tokens){
+        //TODO: implement
+        return $this;
     }
 }
