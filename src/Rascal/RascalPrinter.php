@@ -2,7 +2,10 @@
 
 namespace PhpMyAdmin\SqlParser\Rascal;
 
+use PhpMyAdmin\SqlParser\Components\BetweenCondition;
+use PhpMyAdmin\SqlParser\Components\ComparisonCondition;
 use PhpMyAdmin\SqlParser\Components\Condition;
+use PhpMyAdmin\SqlParser\Components\NullCondition;
 use PhpMyAdmin\SqlParser\Parser;
 use PhpMyAdmin\SqlParser\Statements\AlterStatement;
 use PhpMyAdmin\SqlParser\Statements\DeleteStatement;
@@ -515,6 +518,51 @@ class RascalPrinter
             echo "unexpected condition tree node";
             exit(1);
         }
+    }
+
+    public static function printSimpleCondition($simple){
+        if($simple instanceof ComparisonCondition){
+            return self::printComparisonCondition($simple);
+        }
+        else if($simple instanceof BetweenCondition){
+            return self::printBetweenCondition($simple);
+        }
+        else if($simple instanceof NullCondition){
+            return self::printNullCondition($simple);
+        }
+        else{
+            return "unknown(\"" . $simple->str . "\")";
+        }
+    }
+
+    public static function printComparisonCondition($comparison){
+        $beginning = "";
+        $middle = "";
+        $end = "";
+
+        // compound condition such as a < b < c
+        if($comparison->rhs instanceof ComparisonCondition){
+            $beginning .= "compoundComparison(";
+            $end .= self::printComparisonCondition($comparison->rhs) . ")";
+        }
+        // simple condition such as a = b, a < b, etc.
+        else{
+            $beginning .= "simpleComparison(";
+            $end .= "\"" . $comparison->rhs . "\")";
+        }
+
+        $middle .= "\"" . $comparison->lhs . "\", \"" . $comparison->op . "\", ";
+
+        return $beginning . $middle . $end;
+    }
+
+    public static function printBetweenCondition($between){
+        return "between(" . $between->not . ", \"" . $between->expr . "\", " . $between->lower .
+            "\", " . $between->upper . "\")";
+    }
+
+    public static function printNullCondition($null){
+        return "isNull(" . $null->not . ", \"" . $null->expr . "\")";
     }
 
     /*
