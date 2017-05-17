@@ -53,7 +53,7 @@ abstract class SimpleCondition
     }
 
     /**
-     * Identifies which child class parse method to call
+     * Identifies which type of SimpleCondition the tokens in $list represent and calls the correct parse method
      *
      * @return SimpleCondition
      */
@@ -304,12 +304,13 @@ class NotYetImplementedCondition extends SimpleCondition
     public function __construct($tokensList)
     {
         parent::__construct($tokensList);
-        foreach($tokensList->tokens as $token){
+        foreach ($tokensList->tokens as $token) {
             $this->str .= $token->value;
         }
     }
 
-    public function parse(){
+    public function parse()
+    {
         return $this;
     }
 }
