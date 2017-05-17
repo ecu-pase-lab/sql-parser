@@ -95,10 +95,9 @@ class Condition extends Component
     {
 
         /**
-         * keeps track of tokens that make up a simple condition
-         * TODO: change this from a string to a token array for further processing
+         * @var Token[]
          */
-        $condition = "";
+        $condition = array();
 
         /**
          * Counts brackets.
@@ -154,7 +153,7 @@ class Condition extends Component
             // Replacing all whitespaces (new lines, tabs, etc.) with a single
             // space character.
             if ($token->type === Token::TYPE_WHITESPACE) {
-                $condition .= ' ';
+                $condition[] =  $token;
                 continue;
             }
 
@@ -162,15 +161,14 @@ class Condition extends Component
             if (in_array($token->value, static::$DELIMITERS, true) || $token->value === "NOT") {
                 if (($betweenBefore) && ($token->value === 'AND')) {
                     // The syntax of keyword `BETWEEN` is hard-coded.
-                    $condition .= $token->value;
+                    $condition[] = $token;
                     $betweenBefore = false;
                 }
                 else {
                     // The condition ended, add it to the output stack
-                    $condition = trim($condition);
                     if(!empty($condition)) {
-                        array_push($output, new ConditionNode($condition));
-                        $condition = "";
+                        array_push($output, new ConditionNode(SimpleCondition::identify(new TokensList($condition, sizeof($condition))));
+                        $condition = array();
                     }
                     // Adding the operator to the operator stack
                     while(sizeof($opStack) !== 0 && $opStack[sizeof($opStack) - 1]->value !== "(" &&
@@ -199,12 +197,12 @@ class Condition extends Component
                 if (($brackets === 0) && (empty(static::$ALLOWED_KEYWORDS[$token->value]))) {
                     break;
                 }
-                $condition .= $token->value;
+                $condition[] = $token;
                 continue;
             }
 
             if($token->flags & Token::FLAG_KEYWORD_FUNCTION){
-                $condition .= $token->value;
+                $condition[] = $token;
 
                 // non-reserved keywords can also be used as identifiers
                 if(!($token->flags & Token::FLAG_KEYWORD_RESERVED) && $list[$list->idx + 1] !== "("){
@@ -217,7 +215,7 @@ class Condition extends Component
                         break;
                     }
                     $token = $list[++$list->idx];
-                    $condition .= $token->value;
+                    $condition[] = $token;
                 }while($list->idx < $list->count && $token->value !== ")");
                 continue;
             }
@@ -235,8 +233,8 @@ class Condition extends Component
                     --$brackets;
 
                     // push the final condition onto the output stack
-                    array_push($output, new ConditionNode($condition));
-                    $condition = "";
+                    array_push($output, new ConditionNode(SimpleCondition::identify(new TokensList($condition, sizeof($condition)))));
+                    $condition = array();
 
                     while(sizeof($opStack) !== 0){
                         $op = array_pop($opStack);
@@ -255,17 +253,17 @@ class Condition extends Component
                     continue;
                 }
                 else{
-                    $condition .= $token->value;
+                    $condition[] = $token;
                     continue;
                 }
             }
 
-            $condition .= $token->value;
+            $condition[] = $token;
         }
 
         // add final condition to the output stack
         if(!empty($condition)){
-            array_push($output, new ConditionNode($condition));
+            array_push($output, new ConditionNode(SimpleCondition::identify(new TokensList($condition, sizeof($condition)))));
         }
 
         while(sizeof($opStack) !== 0) {
