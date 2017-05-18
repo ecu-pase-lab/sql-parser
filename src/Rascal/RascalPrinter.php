@@ -505,7 +505,7 @@ class RascalPrinter
     public static function printConditions($tree)
     {
         if (is_null($tree->left) && is_null($tree->right)) {
-            return "condition(\"" . $tree->value . "\")";
+            return "condition(" . self::printSimpleCondition($tree->value) . ")";
         } else if ($tree->value === "NOT") {
             return "not(\"" . self::printConditions($tree->left) . "\")";
         } else if ($tree->value === "AND" || $tree->value === "&&") {
@@ -557,12 +557,12 @@ class RascalPrinter
     }
 
     public static function printBetweenCondition($between){
-        return "between(" . $between->not . ", \"" . $between->expr . "\", " . $between->lower .
-            "\", " . $between->upper . "\")";
+        return "between(" . ($between->not ? 'true' : 'false') . ", \"" . $between->expr . "\", \"" . $between->lowerBounds .
+            "\", \"" . $between->upperBounds . "\")";
     }
 
     public static function printNullCondition($null){
-        return "isNull(" . $null->not . ", \"" . $null->expr . "\")";
+        return "isNull(" . ($null->not ? 'true' : 'false') . ", \"" . $null->expr . "\")";
     }
 
     /*

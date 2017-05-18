@@ -66,7 +66,6 @@ abstract class SimpleCondition
         // loop through leading whitespace to grab the first expression and first operator/keyword
         for(; $list->idx < $list->count; ++$list->idx){
             $token = $list->tokens[$list->idx];
-
             // Skipping whitespaces.
             if ($token->type === Token::TYPE_WHITESPACE) {
                 continue;
@@ -168,6 +167,7 @@ class BetweenCondition extends SimpleCondition
         while($this->list->tokens[$this->list->idx]->value !== "AND"){
             $token = $this->list->tokens[$this->list->idx];
             if($token->type === Token::TYPE_WHITESPACE){
+                $this->list->idx++;
                 continue;
             }
             else{
