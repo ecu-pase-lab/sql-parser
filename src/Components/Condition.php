@@ -167,7 +167,7 @@ class Condition extends Component
                 else {
                     // The condition ended, add it to the output stack
                     if(!empty($condition)) {
-                        array_push($output, new ConditionNode(SimpleCondition::identify(new TokensList($condition, sizeof($condition))));
+                        array_push($output, new ConditionNode(SimpleCondition::identify(new TokensList($condition, sizeof($condition)))));
                         $condition = array();
                     }
                     // Adding the operator to the operator stack
