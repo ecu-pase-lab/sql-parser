@@ -5,6 +5,7 @@ namespace PhpMyAdmin\SqlParser\Rascal;
 use PhpMyAdmin\SqlParser\Components\BetweenCondition;
 use PhpMyAdmin\SqlParser\Components\ComparisonCondition;
 use PhpMyAdmin\SqlParser\Components\Condition;
+use PhpMyAdmin\SqlParser\Components\InCondition;
 use PhpMyAdmin\SqlParser\Components\NullCondition;
 use PhpMyAdmin\SqlParser\Parser;
 use PhpMyAdmin\SqlParser\Statements\AlterStatement;
@@ -530,6 +531,9 @@ class RascalPrinter
         else if($simple instanceof NullCondition){
             return self::printNullCondition($simple);
         }
+        else if($simple instanceof InCondition){
+            return self::printInCondition($simple);
+        }
         else{
             return "unknown(\"" . $simple->str . "\")";
         }
@@ -567,6 +571,22 @@ class RascalPrinter
 
     public static function printNullCondition($null){
         return "isNull(" . ($null->not ? 'true' : 'false') . ", \"" . $null->expr . "\")";
+    }
+
+    public static function printInCondition($in){
+        $res = "(" . ($in->not ? 'true' : 'false') . ", \"" . $in->expr . "\", ";
+        if($in->values instanceof SelectStatement){
+            $res = "inSubquery" . $res;
+            $res .= self::printSelectQuery($in->values);
+        }
+        else{
+            $res .= "inValues" . $res . "[";
+            $values = implode("\", \"", $in->values);
+            $values = "\"" . $values;
+            $values .= "\"";
+            $res .= $values . "]";
+        }
+        return $res . ")";
     }
 
     /*

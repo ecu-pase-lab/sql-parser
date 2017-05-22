@@ -369,7 +369,7 @@ class InCondition extends SimpleCondition
 
         // try to parse the result string, it might be a subquery
         $parser = new Parser($str);
-        if(!is_null($parser->statements[0])){
+        if(!empty($parser->statements)){
             $this->values = $parser->statements[0];
         }
         // otherwise, this is a group of expressions
