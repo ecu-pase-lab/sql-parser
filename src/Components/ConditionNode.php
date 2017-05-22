@@ -8,6 +8,8 @@
 
 namespace PhpMyAdmin\SqlParser\Components;
 
+use PhpMyAdmin\SqlParser\Parser;
+use PhpMyAdmin\SqlParser\Statements\SelectStatement;
 use PhpMyAdmin\SqlParser\Token;
 use PhpMyAdmin\SqlParser\TokensList;
 
@@ -97,6 +99,10 @@ abstract class SimpleCondition
                         $list->idx++;
                         // TODO: other condition types use the IS keyword
                         return (new NullCondition($list, $firstExpr))->parse();
+                    }
+                    else if($token->value === "IN"){
+                        $list->idx++;
+                        return (new InCondition($list, $foundNot, $firstExpr))->parse();
                     }
                 }
             }
@@ -306,6 +312,83 @@ class ComparisonCondition extends SimpleCondition
             }
         }
         return $this;
+    }
+}
+
+class InCondition extends SimpleCondition
+{
+    /**
+     * is this InCondition Negated?
+     *
+     * @var boolean
+     */
+    public $not;
+
+    /**
+     * expression on RHS of IN keyword
+     *
+     * @var string
+     */
+    public $expr;
+
+    /**
+     * list of values on RHS of IN keyword or subquery on RHS of IN keyword
+     * @var string[] | SelectStatement
+     */
+    public $values;
+
+    public function __construct($tokens, $not, $expr)
+    {
+        parent::__construct($tokens);
+        $this->not = $not;
+        $this->expr = $expr;
+    }
+
+    public function parse()
+    {
+        // cycle through whitespace until the opening paren is reached
+        for(; $this->list->idx < $this->list->count; ++$this->list->idx){
+            $token = $this->list->tokens[$this->list->idx];
+            if($token->value === "("){
+                $this->list->idx++;
+                break;
+            }
+        }
+
+        // get all tokens between the parens, explode into a string array
+        $str = "";
+        for(; $this->list->idx < $this->list->count; ++$this->list->idx){
+            $token = $this->list->tokens[$this->list->idx];
+            if($token->value === ")"){
+                break;
+            }
+            else{
+                $str .= $token->value;
+            }
+        }
+
+        // try to parse the result string, it might be a subquery
+        $parser = new Parser($str);
+        if(!is_null($parser->statements[0])){
+            $this->values = $parser->statements[0];
+        }
+        // otherwise, this is a group of expressions
+        else{
+            $group = explode(',', $str);
+            $this->values = $group;
+        }
+
+        return $this;
+    }
+}
+
+class LikeCondition extends SimpleCondition
+{
+    public function __construct($tokens){
+        parent::__construct($tokens);
+    }
+    public function parse(){
+        //TODO: implement
     }
 }
 
