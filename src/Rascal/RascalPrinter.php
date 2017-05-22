@@ -553,6 +553,10 @@ class RascalPrinter
 
         $middle .= "\"" . $comparison->lhs . "\", \"" . $comparison->op . "\", ";
 
+        if($comparison->not === true) {
+            $beginning = "not(" . $beginning;
+            $end .= ")";
+        }
         return $beginning . $middle . $end;
     }
 

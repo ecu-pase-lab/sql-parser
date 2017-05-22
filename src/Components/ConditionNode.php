@@ -66,8 +66,14 @@ abstract class SimpleCondition
         // loop through leading whitespace to grab the first expression and first operator/keyword
         for(; $list->idx < $list->count; ++$list->idx){
             $token = $list->tokens[$list->idx];
+
             // Skipping whitespaces.
             if ($token->type === Token::TYPE_WHITESPACE) {
+                continue;
+            }
+
+            if($token->value === "NOT"){
+                $foundNot = true;
                 continue;
             }
 
@@ -75,13 +81,13 @@ abstract class SimpleCondition
                 // right now we expect the first non comment/whitespace token to be an expression, return a NotYetImplementedCondition
                 // this will be revisited later for other types of conditions
                 if($foundFirstExpr === false) {
-                    return new NotYetImplementedCondition($list->tokens);
+                    return new NotYetImplementedCondition($list);
                 }
                 else{
                     $firstOp = $token->value;
                     if(in_array($firstOp, ComparisonCondition::$COMPARISON_OPS, true)){
                         $list->idx++;
-                        return (new ComparisonCondition($list, $firstExpr, $firstOp))->parse();
+                        return (new ComparisonCondition($list, $firstExpr, $firstOp, $foundNot))->parse();
                     }
                     else if($token->value === "BETWEEN"){
                         $list->idx++;
@@ -90,12 +96,7 @@ abstract class SimpleCondition
                     else if($token->value === "IS"){
                         $list->idx++;
                         // TODO: other condition types use the IS keyword
-                        return (new NullCondition($list, $firstExpr, $foundNot))->parse();
-                    }
-                    else if($token->value === "NOT"){
-                        // this simple condition is negated, loop again to get the next operator or keyword
-                        $foundNot = true;
-                        continue;
+                        return (new NullCondition($list, $firstExpr))->parse();
                     }
                 }
             }
@@ -197,7 +198,7 @@ class BetweenCondition extends SimpleCondition
 
 /**
  * represents conditions of the form expr IS [NOT] NULL
- *
+ * TODO: other condition types use the IS keyword
  * Class NullCondition
  * @package PhpMyAdmin\SqlParser\Components
  */
@@ -217,18 +218,24 @@ class NullCondition extends SimpleCondition
      */
     public $expr;
 
-    public function __construct($tokens, $firstExpr, $not)
+    public function __construct($tokens, $firstExpr)
     {
         parent::__construct($tokens);
         $this->expr = $firstExpr;
-        $this->not = $not;
+        $this->not = false;
     }
 
     /**
      * @return NullCondition
      */
     public function parse(){
-        // the information provided by SimpleCondition::identify() is enough to parse null conditions
+        for(; $this->list->idx < $this->list->count; ++$this->list->idx){
+            $token = $this->list->tokens[$this->list->idx];
+            if($token->value === "NOT NULL"){
+                $this->not = true;
+                return $this;
+            }
+        }
         return $this;
     }
 }
@@ -242,6 +249,13 @@ class NullCondition extends SimpleCondition
 class ComparisonCondition extends SimpleCondition
 {
     public static $COMPARISON_OPS = array('=', '!=', '^=', '<>', '>', '<', '>=', '<=');
+
+    /**
+     * is this ComparisonCondition negated?
+     *
+     * @var bool
+     */
+    public $not;
 
     /**
      * @var string
@@ -260,11 +274,12 @@ class ComparisonCondition extends SimpleCondition
      */
     public $rhs;
 
-    public function __construct($tokens, $lhs, $op)
+    public function __construct($tokens, $lhs, $op, $not = false)
     {
         parent::__construct($tokens);
         $this->lhs = $lhs;
         $this->op = $op;
+        $this->not = $not;
         $this->rhs = "";
     }
 
@@ -304,7 +319,7 @@ class NotYetImplementedCondition extends SimpleCondition
     public function __construct($tokensList)
     {
         parent::__construct($tokensList);
-        foreach ($tokensList->tokens as $token) {
+        foreach ($this->list->tokens as $token) {
             $this->str .= $token->value;
         }
     }

@@ -132,7 +132,6 @@ class Condition extends Component
         $output = array();
 
         for (; $list->idx < $list->count; ++$list->idx) {
-            //var_dump($output);
             /**
              * Token parsed at this moment.
              *
@@ -154,6 +153,13 @@ class Condition extends Component
             // space character.
             if ($token->type === Token::TYPE_WHITESPACE) {
                 $condition[] =  $token;
+                continue;
+            }
+
+            if($token->value === "NOT" && !empty($condition)){
+                // this NOT is used in the context of a condition such as "c not between 1 and 5" or "c is not null"
+                // add it to the condition rather than the operator stack
+                $condition[] = $token;
                 continue;
             }
 
