@@ -107,6 +107,10 @@ abstract class SimpleCondition
                         $list->idx++;
                         return (new InCondition($list, true, $firstExpr))->parse();
                     }
+                    else if($token->value === "LIKE"){
+                        $list->idx++;
+                        return (new LikeCondition($list, $firstExpr, $foundNot))->parse();
+                    }
                 }
             }
             else{
@@ -387,11 +391,53 @@ class InCondition extends SimpleCondition
 
 class LikeCondition extends SimpleCondition
 {
-    public function __construct($tokens){
+    /**
+     * Is this LIKE condition negated?
+     * @var bool
+     */
+    public $not;
+
+    /**
+     * expression on LHS of LIKE
+     *
+     * @var string
+     */
+    public $expr;
+
+    /**
+     * pattern on RHS of LIKE
+     * @var string
+     */
+    public $pattern = "";
+
+    public function __construct($tokens, $expr, $not){
         parent::__construct($tokens);
+        $this->expr = $expr;
+        $this->not = $not;
     }
-    public function parse(){
-        //TODO: implement
+    public function parse()
+    {
+        // skip all leading whitespace
+        for (; $this->list->idx < $this->list->count; ++$this->list->idx) {
+            $token = $this->list->tokens[$this->list->idx];
+            if ($token->type !== Token::TYPE_WHITESPACE) {
+
+                break;
+            }
+        }
+
+        // grab all tokens until the next whitespace token, null token, or end of condition
+        for (; $this->list->idx < $this->list->count; ++$this->list->idx) {
+            $token = $this->list->tokens[$this->list->idx];
+            if ($token->type === Token::TYPE_WHITESPACE || $token->value === "NULL") {
+                break;
+            }
+            else{
+                $this->pattern .= $token->value;
+            }
+        }
+
+        return $this;
     }
 }
 
