@@ -68,7 +68,6 @@ abstract class SimpleCondition
         // loop through leading whitespace to grab the first expression and first operator/keyword
         for(; $list->idx < $list->count; ++$list->idx){
             $token = $list->tokens[$list->idx];
-
             // Skipping whitespaces.
             if ($token->type === Token::TYPE_WHITESPACE) {
                 continue;
@@ -102,7 +101,11 @@ abstract class SimpleCondition
                     }
                     else if($token->value === "IN"){
                         $list->idx++;
-                        return (new InCondition($list, $foundNot, $firstExpr))->parse();
+                        return (new InCondition($list, false, $firstExpr))->parse();
+                    }
+                    else if($token->value === "NOT IN"){
+                        $list->idx++;
+                        return (new InCondition($list, true, $firstExpr))->parse();
                     }
                 }
             }
@@ -402,7 +405,8 @@ class NotYetImplementedCondition extends SimpleCondition
     public function __construct($tokensList)
     {
         parent::__construct($tokensList);
-        foreach ($this->list->tokens as $token) {
+        for(; $this->list->idx < $this->list->count; ++$this->list->idx){
+            $token = $this->list->tokens[$this->list->idx];
             $this->str .= $token->value;
         }
     }
