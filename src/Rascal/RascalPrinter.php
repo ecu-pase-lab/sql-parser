@@ -584,7 +584,7 @@ class RascalPrinter
             $res .= self::printSelectQuery($in->values);
         }
         else{
-            $res .= "inValues" . $res . "[";
+            $res = "inValues" . $res . "[";
             $values = implode("\", \"", $in->values);
             $values = "\"" . $values;
             $values .= "\"";
