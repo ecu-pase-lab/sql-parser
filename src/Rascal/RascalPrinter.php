@@ -6,6 +6,7 @@ use PhpMyAdmin\SqlParser\Components\BetweenCondition;
 use PhpMyAdmin\SqlParser\Components\ComparisonCondition;
 use PhpMyAdmin\SqlParser\Components\Condition;
 use PhpMyAdmin\SqlParser\Components\InCondition;
+use PhpMyAdmin\SqlParser\Components\LikeCondition;
 use PhpMyAdmin\SqlParser\Components\NullCondition;
 use PhpMyAdmin\SqlParser\Parser;
 use PhpMyAdmin\SqlParser\Statements\AlterStatement;
@@ -534,6 +535,9 @@ class RascalPrinter
         else if($simple instanceof InCondition){
             return self::printInCondition($simple);
         }
+        else if($simple instanceof  LikeCondition){
+            return self::printLikeCondition($simple);
+        }
         else{
             return "unknown(\"" . $simple->str . "\")";
         }
@@ -587,6 +591,10 @@ class RascalPrinter
             $res .= $values . "]";
         }
         return $res . ")";
+    }
+
+    public static function printLikeCondition($like){
+        return "like(" . ($like->not ? 'true' : 'false') . ", \"" . $like->expr . "\", \"" . $like->pattern . "\")";
     }
 
     /*
