@@ -212,7 +212,7 @@ class Condition extends Component
                 $condition[] = $token;
 
                 // non-reserved keywords can also be used as identifiers
-                if(!($token->flags & Token::FLAG_KEYWORD_RESERVED) && $list[$list->idx + 1] !== "("){
+                if(!($token->flags & Token::FLAG_KEYWORD_RESERVED) && $list[$list->idx + 1]->value !== "("){
                     continue;
                 }
 
