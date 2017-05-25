@@ -78,7 +78,7 @@ abstract class SimpleCondition
                 continue;
             }
 
-            if(($token->type === Token::TYPE_KEYWORD || $token->type === Token::TYPE_OPERATOR)){
+            if((($token->type === Token::TYPE_KEYWORD && $token->flags & Token::FLAG_KEYWORD_RESERVED) || $token->type === Token::TYPE_OPERATOR)){
                 // right now we expect the first non comment/whitespace token to be an expression, return a NotYetImplementedCondition
                 // this will be revisited later for other types of conditions
                 if($foundFirstExpr === false) {
