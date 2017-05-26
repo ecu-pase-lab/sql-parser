@@ -185,7 +185,7 @@ class BetweenCondition extends SimpleCondition
                 continue;
             }
             else{
-                $this->lowerBounds += $token->value;
+                $this->lowerBounds .= $token->value;
             }
             $this->list->idx++;
         }
@@ -201,7 +201,7 @@ class BetweenCondition extends SimpleCondition
                 continue;
             }
             else{
-                $this->upperBounds += $token->value;
+                $this->upperBounds .= $token->value;
             }
         }
 
@@ -421,7 +421,6 @@ class LikeCondition extends SimpleCondition
         for (; $this->list->idx < $this->list->count; ++$this->list->idx) {
             $token = $this->list->tokens[$this->list->idx];
             if ($token->type !== Token::TYPE_WHITESPACE) {
-
                 break;
             }
         }
