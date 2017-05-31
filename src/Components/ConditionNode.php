@@ -78,11 +78,16 @@ abstract class SimpleCondition
                 continue;
             }
 
+            if($token->type === Token::TYPE_OPERATOR && $token->value === "."){
+                $firstExpr .= $token->value;
+                continue;
+            }
+
             if((($token->type === Token::TYPE_KEYWORD && $token->flags & Token::FLAG_KEYWORD_RESERVED) || $token->type === Token::TYPE_OPERATOR)){
                 // right now we expect the first non comment/whitespace token to be an expression, return a NotYetImplementedCondition
                 // this will be revisited later for other types of conditions
                 if($foundFirstExpr === false) {
-                    return new NotYetImplementedCondition($list);
+                    return (new NotYetImplementedCondition($list))->parse();
                 }
                 else{
                     $firstOp = $token->value;
@@ -111,10 +116,14 @@ abstract class SimpleCondition
                         $list->idx++;
                         return (new LikeCondition($list, $firstExpr, $foundNot))->parse();
                     }
+                    else{
+                        $list->idx++;
+                        return (new NotYetImplementedCondition($list))->parse();
+                    }
                 }
             }
             else{
-                $firstExpr = $token->value;
+                $firstExpr .= $token->value;
                 $foundFirstExpr = true;
             }
         }
@@ -450,14 +459,14 @@ class NotYetImplementedCondition extends SimpleCondition
     public function __construct($tokensList)
     {
         parent::__construct($tokensList);
-        for(; $this->list->idx < $this->list->count; ++$this->list->idx){
-            $token = $this->list->tokens[$this->list->idx];
-            $this->str .= $token->value;
-        }
     }
 
     public function parse()
     {
+        for(; $this->list->idx < $this->list->count; ++$this->list->idx){
+            $token = $this->list->tokens[$this->list->idx];
+            $this->str .= $token->value;
+        }
         return $this;
     }
 }

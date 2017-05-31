@@ -7,6 +7,7 @@ use PhpMyAdmin\SqlParser\Components\ComparisonCondition;
 use PhpMyAdmin\SqlParser\Components\Condition;
 use PhpMyAdmin\SqlParser\Components\InCondition;
 use PhpMyAdmin\SqlParser\Components\LikeCondition;
+use PhpMyAdmin\SqlParser\Components\NotYetImplementedCondition;
 use PhpMyAdmin\SqlParser\Components\NullCondition;
 use PhpMyAdmin\SqlParser\Parser;
 use PhpMyAdmin\SqlParser\Statements\AlterStatement;
@@ -538,8 +539,11 @@ class RascalPrinter
         else if($simple instanceof  LikeCondition){
             return self::printLikeCondition($simple);
         }
-        else{
+        else if($simple instanceof NotYetImplementedCondition){
             return "unknown(\"" . $simple->str . "\")";
+        }
+        else{
+            return "unknown(\"\")";
         }
     }
 
