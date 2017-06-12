@@ -26,6 +26,11 @@ class RascalPrinter
 {
     private $parser;
 
+    public static function rascalizeString($str)
+    {
+        return addcslashes($str, "<>'\n\t\r\\\"");
+    }
+
     public function __construct($query)
     {
         $this->parser = new Parser($query);
@@ -357,7 +362,7 @@ class RascalPrinter
         return $res . ")";
     }
 
-    public static function PrintTruncateQuery($parsed){
+    public static function printTruncateQuery($parsed){
         $res = "truncateQuery(";
 
         $res .= self::printExpression($parsed->table);
@@ -384,38 +389,38 @@ class RascalPrinter
                     break;
                 // this expression is a column name
                 case($exp->column):
-                    $res .= "name(column(\"" . $exp->column . "\"))";
+                    $res .= "name(column(\"" . self::rascalizeString($exp->column) . "\"))";
                     break;
                 // this expression is a table name
                 case($exp->table):
-                    $res .= "name(table(\"" . $exp->table . "\"))";
+                    $res .= "name(table(\"" . self::rascalizeString($exp->table) . "\"))";
                     break;
                 // this expression is a database name
                 case($exp->database):
-                    $res .= "name(database(\"" . $exp->database . "\"))";
+                    $res .= "name(database(\"" . self::rascalizeString($exp->database) . "\"))";
                     break;
                 case($exp->table . "." . $exp->column):
-                    $res .= "name(tableColumn(\"" . $exp->table . "\", \"" . $exp->column . "\"))";
+                    $res .= "name(tableColumn(\"" . self::rascalizeString($exp->table) . "\", \"" . self::rascalizeString($exp->column) . "\"))";
                     break;
                 case($exp->database . "." . $exp->table):
-                    $res .= "name(databaseTable(\"" . $exp->database . "\", \"" . $exp->table . "\"))";
+                    $res .= "name(databaseTable(\"" . self::rascalizeString($exp->database) . "\", \"" . self::rascalizeString($exp->table) . "\"))";
                     break;
                 case($exp->database . "." . $exp->table . "." . $exp->column):
-                    $res .= "name(databaseTableColumn(\"" . $exp->database . "\", \"" . $exp->table . "\", \"" . $exp->column . "\"))";
+                    $res .= "name(databaseTableColumn(\"" . self::rascalizeString($exp->database) . "\", \"" . self::rascalizeString($exp->table) . "\", \"" . self::rascalizeString($exp->column) . "\"))";
                     break;
             }
 
             if (!is_null($exp->function)) {
                 //TODO: handle function params
-                $res .= "call(\"" . $exp->function . "\")";
+                $res .= "call(\"" . self::rascalizeString($exp->function) . "\")";
             }
         }
 
         if (!is_null($exp->alias)) {
-            $res .= ", \"" . $exp->alias . "\")";
+            $res .= ", \"" . self::rascalizeString($exp->alias) . "\")";
         }
 
-        return empty($res) ? "unknownExp(\"" . $exp->expr . "\")" : $res;
+        return empty($res) ? "unknownExp(\"" . self::rascalizeString($exp->expr) . "\")" : $res;
     }
 
     /*
@@ -460,10 +465,10 @@ class RascalPrinter
 
         $res = "groupBy({";
         for ($i = 0; $i < $size - 1; $i++) {
-            $res .= "<" . self::printExpression($grouping[$i]->expr) . ", \"" . $grouping[$i]->type . "\">";
+            $res .= "<" . self::printExpression($grouping[$i]->expr) . ", \"" . self::rascalizeString($grouping[$i]->type) . "\">";
             $res .= ", ";
         }
-        $res .= "<" . self::printExpression($grouping[$size - 1]->expr) . ", \"" . $grouping[$size - 1]->type . "\">";
+        $res .= "<" . self::printExpression($grouping[$size - 1]->expr) . ", \"" . self::rascalizeString($grouping[$size - 1]->type) . "\">";
 
         $res .= "})";
 
@@ -479,10 +484,10 @@ class RascalPrinter
 
         $res = "orderBy({";
         for ($i = 0; $i < $size - 1; $i++) {
-            $res .= "<" . self::printExpression($ordering[$i]->expr) . ", \"" . $ordering[$i]->type . "\">";
+            $res .= "<" . self::printExpression($ordering[$i]->expr) . ", \"" . self::rascalizeString($ordering[$i]->type) . "\">";
             $res .= ", ";
         }
-        $res .= "<" . self::printExpression($ordering[$size - 1]->expr) . ", \"" . $ordering[$size - 1]->type . "\">";
+        $res .= "<" . self::printExpression($ordering[$size - 1]->expr) . ", \"" . self::rascalizeString($ordering[$size - 1]->type) . "\">";
 
         $res .= "})";
 
@@ -492,10 +497,10 @@ class RascalPrinter
     public static function printLimit($limit)
     {
         if ($limit->offset === 0) {
-            $res = "limit(\"" . $limit->rowCount . "\"";
+            $res = "limit(\"" . self::rascalizeString($limit->rowCount) . "\"";
         }
         else{
-            $res = "limitWithOffset(\"" .  $limit->rowCount . "\", \"" . $limit->offset . "\"";
+            $res = "limitWithOffset(\"" .  self::rascalizeString($limit->rowCount) . "\", \"" . self::rascalizeString($limit->offset) . "\"";
         }
         $res .= ")";
 
@@ -510,7 +515,7 @@ class RascalPrinter
         if (is_null($tree->left) && is_null($tree->right)) {
             return "condition(" . self::printSimpleCondition($tree->value) . ")";
         } else if ($tree->value === "NOT") {
-            return "not(\"" . self::printConditions($tree->left) . "\")";
+            return "not(\"" . self::rascalizeString(self::printConditions($tree->left)) . "\")";
         } else if ($tree->value === "AND" || $tree->value === "&&") {
             return "and(" . self::printConditions($tree->left) . ", " . self::printConditions($tree->right) . ")";
         } else if ($tree->value === "OR" || $tree->value === "||") {
@@ -540,7 +545,7 @@ class RascalPrinter
             return self::printLikeCondition($simple);
         }
         else if($simple instanceof NotYetImplementedCondition){
-            return "unknown(\"" . $simple->str . "\")";
+            return "unknown(\"" . self::rascalizeString($simple->str) . "\")";
         }
         else{
             return "unknown(\"\")";
@@ -560,10 +565,10 @@ class RascalPrinter
         // simple condition such as a = b, a < b, etc.
         else{
             $beginning .= "simpleComparison(";
-            $end .= "\"" . $comparison->rhs . "\")";
+            $end .= "\"" . self::rascalizeString($comparison->rhs) . "\")";
         }
 
-        $middle .= "\"" . $comparison->lhs . "\", \"" . $comparison->op . "\", ";
+        $middle .= "\"" . self::rascalizeString($comparison->lhs) . "\", \"" . self::rascalizeString($comparison->op) . "\", ";
 
         if($comparison->not === true) {
             $beginning = "not(" . $beginning;
@@ -573,12 +578,12 @@ class RascalPrinter
     }
 
     public static function printBetweenCondition($between){
-        return "between(" . ($between->not ? 'true' : 'false') . ", \"" . $between->expr . "\", \"" . $between->lowerBounds .
-            "\", \"" . $between->upperBounds . "\")";
+        return "between(" . ($between->not ? 'true' : 'false') . ", \"" . self::rascalizeString($between->expr) . "\", \"" . self::rascalizeString($between->lowerBounds) .
+            "\", \"" . self::rascalizeString($between->upperBounds) . "\")";
     }
 
     public static function printNullCondition($null){
-        return "isNull(" . ($null->not ? 'true' : 'false') . ", \"" . $null->expr . "\")";
+        return "isNull(" . ($null->not ? 'true' : 'false') . ", \"" . self::rascalizeString($null->expr) . "\")";
     }
 
     public static function printInCondition($in){
@@ -589,7 +594,11 @@ class RascalPrinter
         }
         else{
             $res = "inValues" . $res . "[";
-            $values = implode("\", \"", $in->values);
+            $rascalizedValues = array();
+            foreach ($in->values as $value) {
+                $rascalizedValues[] = self::rascalizeString($value);
+            }
+            $values = implode("\", \"", $rascalizedValues);
             $values = "\"" . $values;
             $values .= "\"";
             $res .= $values . "]";
@@ -598,7 +607,7 @@ class RascalPrinter
     }
 
     public static function printLikeCondition($like){
-        return "like(" . ($like->not ? 'true' : 'false') . ", \"" . $like->expr . "\", \"" . $like->pattern . "\")";
+        return "like(" . ($like->not ? 'true' : 'false') . ", \"" . self::rascalizeString($like->expr) . "\", \"" . self::rascalizeString($like->pattern) . "\")";
     }
 
     /*
@@ -606,7 +615,7 @@ class RascalPrinter
      */
     public static function printJoin($join){
         $res = "";
-        $type = "\"" . $join->type . "\"";
+        $type = "\"" . self::rascalizeString($join->type) . "\"";
         $joinExp = self::printExpression($join->expr);
 
         if(!is_null($join->on)){
@@ -640,9 +649,9 @@ class RascalPrinter
         $size = sizeof($array->values);
         $res = "[";
         for($i = 0; $i < $size - 1; $i++){
-            $res .= "\"" . $array->values[$i] . "\", ";
+            $res .= "\"" . self::rascalizeString($array->values[$i]) . "\", ";
         }
-        $res .= "\"" . $array->values[$size - 1] . "\"]";
+        $res .= "\"" . self::rascalizeString($array->values[$size - 1]) . "\"]";
 
         return $res;
     }
@@ -660,9 +669,9 @@ class RascalPrinter
             $size = sizeof($into->columns);
             $res .= ", [";
             for($i = 0; $i < $size - 1; $i++){
-                $res .= "\"" . $into->columns[$i] . "\", ";
+                $res .= "\"" . self::rascalizeString($into->columns[$i]) . "\", ";
             }
-            $res .= "\"" . $into->columns[$size - 1] . "\"]";
+            $res .= "\"" . self::rascalizeString($into->columns[$size - 1]) . "\"]";
         }
         else{
             $res .= ", []";
@@ -682,9 +691,9 @@ class RascalPrinter
         $res = "[";
         $size = sizeof($array);
         for($i = 0; $i < $size - 1; $i++){
-            $res .= "setOp(\"" . $array[$i]->column . "\", \"" . $array[$i]->value . "\"), ";
+            $res .= "setOp(\"" . self::rascalizeString($array[$i]->column) . "\", \"" . self::rascalizeString($array[$i]->value) . "\"), ";
         }
-        $res .= "setOp(\"" . $array[$size - 1]->column . "\", \"" . $array[$size - 1]->value . "\")";
+        $res .= "setOp(\"" . self::rascalizeString($array[$size - 1]->column) . "\", \"" . self::rascalizeString($array[$size - 1]->value) . "\")";
         $res .= "]";
 
         return $res;
