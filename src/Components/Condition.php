@@ -149,8 +149,6 @@ class Condition extends Component
                 continue;
             }
 
-            // Replacing all whitespaces (new lines, tabs, etc.) with a single
-            // space character.
             if ($token->type === Token::TYPE_WHITESPACE) {
                 $condition[] =  $token;
                 continue;
@@ -179,7 +177,7 @@ class Condition extends Component
                     }
                     // Adding the operator to the operator stack
                     while(sizeof($opStack) !== 0 && $opStack[sizeof($opStack) - 1]->value !== "(" &&
-                        static::$PRECEDENCE[$token->value] <= static::$PRECEDENCE[$opStack[sizeof($opStack) - 1]->value]) { //checked
+                        static::$PRECEDENCE[$token->value] <= static::$PRECEDENCE[$opStack[sizeof($opStack) - 1]->value]) {
                         $op2 = $opStack[sizeof($opStack) - 1];
                         $node = new ConditionNode($op2->value);
                         $node->left = array_pop($output);
@@ -270,7 +268,7 @@ class Condition extends Component
         }
 
         // add final condition to the output stack
-        if(!empty($condition)){
+        if(!empty($condition) && !(sizeof($condition) === 1 && $condition[0]->type === Token::TYPE_WHITESPACE)){
             $tokens = new TokensList($condition);
             array_push($output, new ConditionNode(SimpleCondition::identify($tokens)));
         }
