@@ -18,10 +18,20 @@ use PhpMyAdmin\SqlParser\TokensList;
 class PartialStatement
 {
     /**
-     *
+     * the tokens that make up this statement
      */
     public $tokens;
 
+
+    /**
+     * the clauses that were actually found
+     */
+    public $foundClauses = array();
+
+    /**
+     * flags for different cases of clauses being contained in holes
+     * @var array
+     */
     public $partialType = array(
         "unknownStatement" => false, // type of query is hidden in a hole
         "connectiveWithoutWhere" => false // case we saw where an AND was encountered but not a WHERE
@@ -34,6 +44,8 @@ class PartialStatement
      */
     public function __construct(TokensList $list)
     {
+        $this->tokens = $list;
+
         if($this->checkIfPartial($list) === true){
             return $this;
         }
@@ -52,7 +64,6 @@ class PartialStatement
      * @return boolean
      */
     public function checkIfPartial(TokensList $list){
-        //TODO: implement
         return false;
     }
 }
