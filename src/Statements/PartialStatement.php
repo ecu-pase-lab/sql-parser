@@ -7,6 +7,7 @@
  */
 
 namespace PhpMyAdmin\SqlParser\Statements;
+use PhpMyAdmin\SqlParser\Token;
 use PhpMyAdmin\SqlParser\TokensList;
 
 /**
@@ -45,13 +46,6 @@ class PartialStatement
     public function __construct(TokensList $list)
     {
         $this->tokens = $list;
-
-        if($this->checkIfPartial($list) === true){
-            return $this;
-        }
-        else{
-            return null;
-        }
     }
 
     /**
@@ -63,7 +57,13 @@ class PartialStatement
      *
      * @return boolean
      */
-    public function checkIfPartial(TokensList $list){
-        return false;
+    public function checkIfPartial(){
+        if($this->tokens[0]->type === Token::TYPE_HOLE){
+            $this->partialType["unknownStatement"] = true;
+            return true;
+        }
+        else{
+            return false;
+        }
     }
 }
