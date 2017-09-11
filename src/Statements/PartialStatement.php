@@ -7,6 +7,7 @@
  */
 
 namespace PhpMyAdmin\SqlParser\Statements;
+use PhpMyAdmin\SqlParser\Components\Condition;
 use PhpMyAdmin\SqlParser\Token;
 use PhpMyAdmin\SqlParser\TokensList;
 
@@ -58,12 +59,27 @@ class PartialStatement
      * @return boolean
      */
     public function checkIfPartial(){
-        if($this->tokens[0]->type === Token::TYPE_HOLE){
+        $list = $this->tokens;
+
+        $foundWhere = false;
+
+        if($list[0]->type === Token::TYPE_HOLE){
             $this->partialType["unknownStatement"] = true;
             return true;
         }
-        else{
-            return false;
+
+        for (; $list->idx < $list->count; ++$list->idx) {
+            $token = $list->tokens[$list->idx];
+
+            if($token->type === Token::TYPE_KEYWORD){
+                if($token->value === "WHERE"){
+                    $foundWhere = true;
+                }
+                if(in_array($token->value, Condition::$DELIMITERS, true) && !$foundWhere){
+                    $this->partialType["connectiveWithoutWhere"] = true;
+                    return true;
+                }
+            }
         }
     }
 }
