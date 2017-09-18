@@ -9,11 +9,13 @@ use PhpMyAdmin\SqlParser\Components\InCondition;
 use PhpMyAdmin\SqlParser\Components\LikeCondition;
 use PhpMyAdmin\SqlParser\Components\NotYetImplementedCondition;
 use PhpMyAdmin\SqlParser\Components\NullCondition;
+use PhpMyAdmin\SqlParser\Lexer;
 use PhpMyAdmin\SqlParser\Parser;
 use PhpMyAdmin\SqlParser\Statements\AlterStatement;
 use PhpMyAdmin\SqlParser\Statements\DeleteStatement;
 use PhpMyAdmin\SqlParser\Statements\DropStatement;
 use PhpMyAdmin\SqlParser\Statements\InsertStatement;
+use PhpMyAdmin\SqlParser\Statements\PartialStatement;
 use PhpMyAdmin\SqlParser\Statements\ReplaceStatement;
 use PhpMyAdmin\SqlParser\Statements\SelectStatement;
 use PhpMyAdmin\SqlParser\Statements\SetStatement;
@@ -25,6 +27,7 @@ require_once("../../vendor/autoload.php");
 class RascalPrinter
 {
     private $parser;
+    private $lexer;
 
     public static function rascalizeString($str)
     {
@@ -34,10 +37,18 @@ class RascalPrinter
     public function __construct($query)
     {
         $this->parser = new Parser($query);
+        $this->lexer = new Lexer($query);
     }
 
     public function printQuery()
     {
+        // first, run partial checker to see if we have cases where holes cross clause boundaries
+        $tokens = $this->lexer->list;
+        $partial = new PartialStatement($tokens);
+        if($partial->checkIfPartial()){
+            return self::printPartialStatement($partial);
+        }
+
         $parsed = $this->parser->statements[0];
         if (is_null($parsed)) {
             return "parseError()";
@@ -62,6 +73,19 @@ class RascalPrinter
         } else{
             return "unknownQuery()";
         }
+    }
+
+    public static function printPartialStatement($partial){
+        $res = "partialStatement(";
+        //TODO: these are not mutually exclusive. this needs to be reflected somehow
+        if($partial->partialType["unknownStatement"]){
+            $res .= "unknownStatementType()";
+        }
+        else if($partial->partialType["connectiveWithoutWhere"]){
+            $res .= "connectiveWithoutWhere()";
+        }
+
+        return $res . ")";
     }
 
     public static function printSelectQuery($parsed)

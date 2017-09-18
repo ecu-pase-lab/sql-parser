@@ -54,7 +54,6 @@ class PartialStatement
      *  side effects: builds a list of all found clauses
      *                  classifies the PartialStatement based on what clauses are missing inside holes
      *
-     * @param TokensList $list
      *
      * @return boolean
      */
