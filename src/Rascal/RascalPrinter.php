@@ -48,7 +48,9 @@ class RascalPrinter
         if($partial->checkIfPartial()){
             return self::printPartialStatement($partial);
         }
-
+        if(empty($this->parser->statements)){
+            return "parseError()";
+        }
         $parsed = $this->parser->statements[0];
         if (is_null($parsed)) {
             return "parseError()";
