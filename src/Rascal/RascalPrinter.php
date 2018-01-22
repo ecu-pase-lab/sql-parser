@@ -327,7 +327,7 @@ class RascalPrinter
             $res .= ", " . self::printExpression($parsed->table);
         }
         else{
-            $res .= ", \"\"";
+            $res .= ", noExp()";
         }
 
         $res .= ")";
