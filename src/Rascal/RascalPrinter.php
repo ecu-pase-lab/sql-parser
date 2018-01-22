@@ -341,7 +341,6 @@ class RascalPrinter
         }
 
         //TODO: altered fields and options
-        $res .= "I am here to force a parse error!";
 
         return $res . ")";
     }
