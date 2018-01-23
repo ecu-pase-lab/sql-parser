@@ -299,12 +299,14 @@ class RascalPrinter
     }
 
     public static function printSetQuery($parsed){
-        $res = "setQuery(";
-        if(!is_null($parsed->set)){
+        $res = "";
+        if(!empty($parsed->set)){
+            $res .= "setQuery(";
             $res .= self::printSetOperations($parsed->set);
         }
         else{
-            $res .= "[]";
+            $options = $parsed->options->options[3];
+            $res .= "setOptionsQuery(" . "\"" . $options["name"] . "\"" . ", \"" . $options["value"] . "\"";
         }
 
         $res .= ")";
