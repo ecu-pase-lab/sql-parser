@@ -415,15 +415,15 @@ class RascalPrinter
                     $res .= "star()";
                     break;
                 // this expression is a column name
-                case($exp->column):
+                case($exp->column || "`" . $exp->column . "`"):
                     $res .= "name(column(\"" . self::rascalizeString($exp->column) . "\"))";
                     break;
                 // this expression is a table name
-                case($exp->table):
+                case($exp->table || "`" . $exp->column . "`"):
                     $res .= "name(table(\"" . self::rascalizeString($exp->table) . "\"))";
                     break;
                 // this expression is a database name
-                case($exp->database):
+                case($exp->database || "`" . $exp->column . "`"):
                     $res .= "name(database(\"" . self::rascalizeString($exp->database) . "\"))";
                     break;
                 case($exp->table . "." . $exp->column):
