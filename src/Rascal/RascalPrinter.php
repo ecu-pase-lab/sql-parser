@@ -559,8 +559,7 @@ class RascalPrinter
         } else if ($tree->value === "XOR") {
             return "xor(" . self::printConditions($tree->left) . ", " . self::printConditions($tree->right) . ")";
         } else {
-            echo "unexpected condition tree node";
-            exit(1);
+            exit("parseError()");
         }
     }
 
