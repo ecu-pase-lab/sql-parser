@@ -238,8 +238,10 @@ class Condition extends Component
                     --$brackets;
 
                     // push the final condition onto the output stack
-                    $tokens = new TokensList($condition);
-                    array_push($output, new ConditionNode(SimpleCondition::identify($tokens)));
+                    if(!empty($condition) && !(sizeof($condition) === 1 && $condition[0]->type === Token::TYPE_WHITESPACE)) {
+                        $tokens = new TokensList($condition);
+                        array_push($output, new ConditionNode(SimpleCondition::identify($tokens)));
+                    }
                     $condition = array();
 
                     while(sizeof($opStack) !== 0){
