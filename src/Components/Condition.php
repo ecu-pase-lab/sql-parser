@@ -170,7 +170,7 @@ class Condition extends Component
                 }
                 else {
                     // The condition ended, add it to the output stack
-                    if(!empty($condition)) {
+                    if(!empty($condition)  && !(sizeof($condition) === 1 && $condition[0]->type === Token::TYPE_WHITESPACE)) {
                         $tokens = new TokensList($condition);
                         array_push($output, new ConditionNode(SimpleCondition::identify($tokens)));
                         $condition = array();
