@@ -83,13 +83,6 @@ class Expression extends Component
     public $subquery;
 
     /**
-     * The ID of the queryHole
-     *
-     * @var int
-     */
-    public $queryHole;
-
-    /**
      * Constructor.
      *
      * Syntax:
@@ -389,7 +382,6 @@ class Expression extends Component
                     $dot = true;
                     $ret->expr .= $token->token;
                 } else {
-                    var_dump($token);
                     $field = empty($options['field']) ? 'column' : $options['field'];
                     if (empty($ret->$field)) {
                         $ret->$field = $token->value;
