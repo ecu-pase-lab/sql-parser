@@ -409,47 +409,45 @@ class RascalPrinter
             $res .= "hole(" . $exp->queryHole . ")";
         }*/
 
-        else {
-            switch ($exp->expr) {
-                case("*"):
-                    $res .= "star()";
-                    break;
-                // this expression is a column name
-                case($exp->column):
-                    $res .= "name(column(\"" . self::rascalizeString($exp->column) . "\"))";
-                    break;
-                case("`" . $exp->column . "`"):
-                    $res .= "name(column(\"" . self::rascalizeString($exp->column) . "\"))";
-                    break;
-                // this expression is a table name
-                case($exp->table):
-                    $res .= "name(table(\"" . self::rascalizeString($exp->table) . "\"))";
-                    break;
-                case("`" . $exp->table . "`"):
-                    $res .= "name(table(\"" . self::rascalizeString($exp->table) . "\"))";
-                    break;
-                // this expression is a database name
-                case($exp->database):
-                    $res .= "name(database(\"" . self::rascalizeString($exp->database) . "\"))";
-                    break;
-                case("`" . $exp->database . "`"):
-                    $res .= "name(database(\"" . self::rascalizeString($exp->database) . "\"))";
-                    break;
-                case($exp->table . "." . $exp->column):
-                    $res .= "name(tableColumn(\"" . self::rascalizeString($exp->table) . "\", \"" . self::rascalizeString($exp->column) . "\"))";
-                    break;
-                case($exp->database . "." . $exp->table):
-                    $res .= "name(databaseTable(\"" . self::rascalizeString($exp->database) . "\", \"" . self::rascalizeString($exp->table) . "\"))";
-                    break;
-                case($exp->database . "." . $exp->table . "." . $exp->column):
-                    $res .= "name(databaseTableColumn(\"" . self::rascalizeString($exp->database) . "\", \"" . self::rascalizeString($exp->table) . "\", \"" . self::rascalizeString($exp->column) . "\"))";
-                    break;
-            }
+        switch ($exp->expr) {
+            case("*"):
+                $res .= "star()";
+                break;
+            // this expression is a column name
+            case($exp->column):
+                $res .= "name(column(\"" . self::rascalizeString($exp->column) . "\"))";
+                break;
+            case("`" . $exp->column . "`"):
+                $res .= "name(column(\"" . self::rascalizeString($exp->column) . "\"))";
+                break;
+            // this expression is a table name
+            case($exp->table):
+                $res .= "name(table(\"" . self::rascalizeString($exp->table) . "\"))";
+                break;
+            case("`" . $exp->table . "`"):
+                $res .= "name(table(\"" . self::rascalizeString($exp->table) . "\"))";
+                break;
+            // this expression is a database name
+            case($exp->database):
+                $res .= "name(database(\"" . self::rascalizeString($exp->database) . "\"))";
+                break;
+            case("`" . $exp->database . "`"):
+                $res .= "name(database(\"" . self::rascalizeString($exp->database) . "\"))";
+                break;
+            case($exp->table . "." . $exp->column):
+                $res .= "name(tableColumn(\"" . self::rascalizeString($exp->table) . "\", \"" . self::rascalizeString($exp->column) . "\"))";
+                break;
+            case($exp->database . "." . $exp->table):
+                $res .= "name(databaseTable(\"" . self::rascalizeString($exp->database) . "\", \"" . self::rascalizeString($exp->table) . "\"))";
+                break;
+            case($exp->database . "." . $exp->table . "." . $exp->column):
+                $res .= "name(databaseTableColumn(\"" . self::rascalizeString($exp->database) . "\", \"" . self::rascalizeString($exp->table) . "\", \"" . self::rascalizeString($exp->column) . "\"))";
+                break;
+        }
 
-            if (!is_null($exp->function)) {
-                //TODO: handle function params
-                $res .= "call(\"" . self::rascalizeString($exp->function) . "\")";
-            }
+        if (!is_null($exp->function)) {
+            //TODO: handle function params
+            $res .= "call(\"" . self::rascalizeString($exp->function) . "\")";
         }
 
         if (!is_null($exp->alias)) {
