@@ -192,6 +192,12 @@ class Expression extends Component
          */
         $prev = array(null, null);
 
+        /**
+         * Keeps track of whether the last token encountered was whitespace
+         * @var bool
+         */
+        $prevWhitespce = false;
+
         // When a field is parsed, no parentheses are expected.
         if (!empty($options['parseField'])) {
             $options['breakOnParentheses'] = true;
@@ -218,6 +224,7 @@ class Expression extends Component
                 if ($isExpr) {
                     $ret->expr .= $token->token;
                 }
+                $prevWhitespce = true;
                 continue;
             }
 
@@ -329,11 +336,11 @@ class Expression extends Component
                 }
             }
 
-            if($token->type === Token::TYPE_HOLE){
+            /*if($token->type === Token::TYPE_HOLE){
                 // ignore ? at beginning of query hole token
                 $id = substr($token->value, 1);
                 $ret->queryHole = (int)$id;
-            }
+            }*/
 
             // Saving the previous tokens.
             $prev[0] = $prev[1];
@@ -382,6 +389,7 @@ class Expression extends Component
                     $dot = true;
                     $ret->expr .= $token->token;
                 } else {
+                    var_dump($token);
                     $field = empty($options['field']) ? 'column' : $options['field'];
                     if (empty($ret->$field)) {
                         $ret->$field = $token->value;
@@ -396,7 +404,16 @@ class Expression extends Component
                             $parser->error('An alias was previously found.', $token);
                             break;
                         }
-                        $ret->alias = $token->value;
+
+                        if($prevWhitespce){
+                            $ret->alias = $token->value;
+                        }
+                        else{
+                            $ret->$field .= $token->value;
+                            $ret->expr .= $token->token;
+                        }
+
+                        $prevWhitespce = false;
                     }
                 }
             }
