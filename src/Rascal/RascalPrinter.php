@@ -405,9 +405,9 @@ class RascalPrinter
             $res .= "aliased(";
         }
 
-        if (!is_null($exp->queryHole)) {
+        /*if (!is_null($exp->queryHole)) {
             $res .= "hole(" . $exp->queryHole . ")";
-        }
+        }*/
 
         else {
             switch ($exp->expr) {
