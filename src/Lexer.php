@@ -905,7 +905,9 @@ class Lexer extends Core
         if(!Context::isQueryHole($token)){
             return null;
         }
-        while(++$this->last < $this->len && Context::isNumber($this->str[$this->last])){
+        while(++$this->last < $this->len && Context::isNumber($this->str[$this->last])
+            && $this->str[$this->last] !== '.'){
+
             $token .= $this->str[$this->last];
         }
 
