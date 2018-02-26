@@ -546,6 +546,9 @@ class RascalPrinter
      */
     public static function printConditions($tree)
     {
+        if(is_null($tree)){
+            return "condition(unknown(\"\"))";
+        }
         if (is_null($tree->left) && is_null($tree->right)) {
             return "condition(" . self::printSimpleCondition($tree->value) . ")";
         } else if ($tree->value === "NOT") {
