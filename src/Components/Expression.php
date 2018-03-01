@@ -189,7 +189,7 @@ class Expression extends Component
          * Keeps track of whether the last token encountered was whitespace
          * @var bool
          */
-        $prevWhitespce = false;
+        $prevWhitespace = false;
 
         // When a field is parsed, no parentheses are expected.
         if (!empty($options['parseField'])) {
@@ -217,7 +217,7 @@ class Expression extends Component
                 if ($isExpr) {
                     $ret->expr .= $token->token;
                 }
-                $prevWhitespce = true;
+                $prevWhitespace = true;
                 continue;
             }
 
@@ -389,7 +389,7 @@ class Expression extends Component
                         $dot = false;
                     } else {
                         // No alias is expected.
-                        if (!empty($options['breakOnAlias'])) {
+                        if ($prevWhitespace && !empty($options['breakOnAlias'])) {
                             break;
                         }
                         if (!empty($ret->alias)) {
@@ -397,7 +397,7 @@ class Expression extends Component
                             break;
                         }
 
-                        if($prevWhitespce){
+                        if($prevWhitespace){
                             $ret->alias = $token->value;
                         }
                         else{
@@ -405,7 +405,7 @@ class Expression extends Component
                             $ret->expr .= $token->token;
                         }
 
-                        $prevWhitespce = false;
+                        $prevWhitespace = false;
                     }
                 }
             }
