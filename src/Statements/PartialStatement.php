@@ -26,9 +26,9 @@ class PartialStatement
 
 
     /**
-     * the clauses that were actually found
+     * The type of the query (null for unknown statements)
      */
-    public $foundClauses = array();
+    public $type = null;
 
     /**
      * flags for different cases of clauses being contained in holes
@@ -36,7 +36,7 @@ class PartialStatement
      */
     public $partialType = array(
         "unknownStatement" => false, // type of query is hidden in a hole
-        "connectiveWithoutWhere" => false // case we saw where an AND was encountered but not a WHERE
+        "connectiveWithoutWhere" => false // case where an AND was encountered but not a WHERE
     );
 
 
@@ -65,6 +65,9 @@ class PartialStatement
         if($list[0]->type === Token::TYPE_HOLE){
             $this->partialType["unknownStatement"] = true;
             return true;
+        }
+        else {
+            $this->type = $list[0]->token;
         }
 
         for (; $list->idx < $list->count; ++$list->idx) {

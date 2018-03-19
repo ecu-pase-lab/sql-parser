@@ -79,12 +79,13 @@ class RascalPrinter
 
     public static function printPartialStatement($partial){
         $res = "partialStatement(";
-        //TODO: these are not mutually exclusive. this needs to be reflected somehow
         if($partial->partialType["unknownStatement"]){
             $res .= "unknownStatementType()";
         }
         else if($partial->partialType["connectiveWithoutWhere"]){
-            $res .= "connectiveWithoutWhere()";
+            $res .= "connectiveWithoutWhere(";
+            $res .= "\"" . self::rascalizeString($partial->type) . "\"";
+            $res .= ")";
         }
 
         return $res . ")";
@@ -399,7 +400,6 @@ class RascalPrinter
 
     public static function printExpression($exp)
     {
-
         $res = "";
         if (!is_null($exp->alias)) {
             $res .= "aliased(";
