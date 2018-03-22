@@ -8,6 +8,7 @@
 
 namespace PhpMyAdmin\SqlParser\Statements;
 use PhpMyAdmin\SqlParser\Components\Condition;
+use PhpMyAdmin\SqlParser\Components\JoinKeyword;
 use PhpMyAdmin\SqlParser\Token;
 use PhpMyAdmin\SqlParser\TokensList;
 
@@ -61,6 +62,7 @@ class PartialStatement
         $list = $this->tokens;
 
         $foundWhere = false;
+        $foundJoin = false;
 
         if($list[0]->type === Token::TYPE_HOLE){
             $this->partialType["unknownStatement"] = true;
@@ -74,11 +76,20 @@ class PartialStatement
                 if($token->value === "WHERE"){
                     $foundWhere = true;
                 }
-                if(in_array($token->value, Condition::$DELIMITERS, true) && !$foundWhere){
-                    $this->partialType["connectiveWithoutWhere"] = true;
-                    return true;
+                if(array_key_exists($token->value, JoinKeyword::$JOINS)){
+                    $foundJoin = true;
+                }
+                if(in_array($token->value, Condition::$DELIMITERS, true)){
+                    if($foundJoin){
+                        return false;
+                    }
+                    if(!$foundWhere){
+                        $this->partialType["connectiveWithoutWhere"] = true;
+                        return true;
+                    }
                 }
             }
         }
+        return false;
     }
 }
